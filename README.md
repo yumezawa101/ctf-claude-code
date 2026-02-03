@@ -45,6 +45,7 @@ ctf-claude-code/
 |   |-- ctf-forensics.md     # フォレンジック専門
 |   |-- ctf-pwn.md           # Pwn/Reversing専門
 |   |-- ctf-osint.md         # OSINT専門
+|   |-- ctf-scraper.md       # CTFプラットフォームスクレイピング
 |
 |-- commands/            # スラッシュコマンド
 |   |-- ctf-start.md         # /ctf-start - セッション開始
@@ -52,6 +53,7 @@ ctf-claude-code/
 |   |-- ctf-recon.md         # /ctf-recon - 初手偵察
 |   |-- ctf-flag.md          # /ctf-flag - フラグ記録
 |   |-- ctf-batch.md         # /ctf-batch - 並列バッチ実行
+|   |-- ctf-auto.md          # /ctf-auto - 完全自動化
 |
 |-- skills/              # 知識・学習
 |   |-- ctf-knowledge/       # カテゴリ別解法パターン
@@ -69,10 +71,13 @@ ctf-claude-code/
 |   |-- hooks.json           # フラグ自動検出等
 |
 |-- scripts/             # スクリプト
+|   |-- ctf-auto-solver.js   # 自動解法スクリプト
 |   |-- ctf-parallel.sh      # 並列実行スクリプト
 |   |-- hooks/               # Hook実装
-|       |-- ctf-flag-detect.js
-|       |-- ctf-session-save.js
+|   |   |-- ctf-flag-detect.js
+|   |   |-- ctf-session-save.js
+|   |-- lib/                 # ライブラリ
+|       |-- utils.js         # ユーティリティ関数
 |
 |-- templates/           # テンプレート
 |   |-- pwn-template.py      # pwntools テンプレート
@@ -241,9 +246,6 @@ Agents は Claude Code が特定のタスクを処理する専門エージェン
 
 ```bash
 # CTF専門エージェントをコピー
-cp agents/ctf-*.md ~/.claude/agents/
-
-# （オプション）汎用エージェントもコピーする場合
 cp agents/*.md ~/.claude/agents/
 ```
 
@@ -265,9 +267,6 @@ Commands は `/command-name` 形式で呼び出すスラッシュコマンドで
 
 ```bash
 # CTFコマンドをコピー
-cp commands/ctf-*.md ~/.claude/commands/
-
-# （オプション）汎用コマンドもコピーする場合
 cp commands/*.md ~/.claude/commands/
 ```
 
