@@ -1,0 +1,39 @@
+{
+  "contest": "CTF大会名",
+  "date": "2025-01-01",
+  "problems": [
+    {
+      "name": "Login Bypass",
+      "category": "web",
+      "points": 100,
+      "url": "http://ctf.example.com/web1",
+      "hint": "SQLインジェクションを試してみよう"
+    },
+    {
+      "name": "RSA Easy",
+      "category": "crypto",
+      "points": 100,
+      "file": "rsa.txt",
+      "hint": "小さいeに注意"
+    },
+    {
+      "name": "Hidden Message",
+      "category": "forensics",
+      "points": 150,
+      "file": "image.png"
+    },
+    {
+      "name": "Buffer Overflow",
+      "category": "pwn",
+      "points": 200,
+      "url": "nc ctf.example.com 9999",
+      "file": "vuln"
+    },
+    {
+      "name": "Find the Location",
+      "category": "osint",
+      "points": 100,
+      "file": "photo.jpg"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "instincts": [
+    {
+      "trigger": "Base64形式の文字列（=終端、A-Za-z0-9+/）",
+      "action": "Base64デコードを試す",
+      "category": "crypto",
+      "confidence": 0.95,
+      "source_count": 0
+    },
+    {
+      "trigger": "PNG画像が添付",
+      "action": "zsteg → exiftool → binwalk の順で実行",
+      "category": "forensics",
+      "confidence": 0.85,
+      "source_count": 0
+    },
+    {
+      "trigger": "JPG画像が添付",
+      "action": "steghide（パスワード空）→ exiftool → strings",
+      "category": "forensics",
+      "confidence": 0.80,
+      "source_count": 0
+    },
+    {
+      "trigger": "ログインフォームがある",
+      "action": "SQLi基本ペイロード（' OR 1=1--）を試す",
+      "category": "web",
+      "confidence": 0.70,
+      "source_count": 0
+    },
+    {
+      "trigger": "n, e, c のパラメータがある",
+      "action": "RSA問題。nをfactordbで素因数分解",
+      "category": "crypto",
+      "confidence": 0.90,
+      "source_count": 0
+    },
+    {
+      "trigger": "pcapファイルが添付",
+      "action": "tshark/wiresharkでHTTP通信を確認",
+      "category": "forensics",
+      "confidence": 0.85,
+      "source_count": 0
+    },
+    {
+      "trigger": "ELFバイナリが添付",
+      "action": "checksec → file → strings → 実行して挙動確認",
+      "category": "pwn",
+      "confidence": 0.90,
+      "source_count": 0
+    },
+    {
+      "trigger": "nc接続先が提示",
+      "action": "まず接続して挙動確認、バイナリがあればリバーシング",
+      "category": "pwn",
+      "confidence": 0.85,
+      "source_count": 0
+    }
+  ],
+  "negative_patterns": [],
+  "contest_patterns": {}
+}

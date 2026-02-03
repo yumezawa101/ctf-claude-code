@@ -1,0 +1,49 @@
+{
+  "_comment": "CTFd プラットフォーム設定テンプレート",
+  "type": "ctfd",
+  "url": "https://ctf.example.com",
+  "credentials": {
+    "username": "YOUR_USERNAME",
+    "password": "YOUR_PASSWORD"
+  },
+  "endpoints": {
+    "login": "/login",
+    "challenges": "/challenges",
+    "api": {
+      "challenges": "/api/v1/challenges",
+      "submit": "/api/v1/challenges/attempt"
+    }
+  },
+  "selectors": {
+    "login": {
+      "usernameInput": "input[name='name']",
+      "passwordInput": "input[name='password']",
+      "submitButton": "button[type='submit']"
+    },
+    "challenges": {
+      "list": ".challenge-button",
+      "modal": "#challenge-window",
+      "title": ".challenge-name",
+      "category": ".challenge-category",
+      "points": ".challenge-points",
+      "description": ".challenge-description",
+      "files": ".challenge-files a",
+      "solved": ".solved-challenge"
+    },
+    "submit": {
+      "flagInput": "#submission-input",
+      "submitButton": "#submit-key",
+      "result": ".alert"
+    }
+  },
+  "flagFormat": {
+    "pattern": "FLAG\\{[^}]+\\}",
+    "prefix": "FLAG{",
+    "suffix": "}"
+  },
+  "options": {
+    "timeout": 30000,
+    "retryCount": 3,
+    "screenshotOnError": true
+  }
+}
