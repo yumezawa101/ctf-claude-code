@@ -221,20 +221,199 @@ python3, pycryptodome, sage
 
 ## インストール
 
+### 1. リポジトリのクローン
+
 ```bash
-# リポジトリをクローン
-git clone <repository-url>
+git clone https://github.com/yumezawa101/ctf-claude-code.git
 cd ctf-claude-code
+```
 
-# Claude設定にコピー
+### 2. Claude Code ディレクトリの準備
+
+```bash
+# ~/.claude ディレクトリがなければ作成
+mkdir -p ~/.claude/{agents,commands,rules,contexts,skills}
+```
+
+### 3. Agents（エージェント）の導入
+
+Agents は Claude Code が特定のタスクを処理する専門エージェントです。
+
+```bash
+# CTF専門エージェントをコピー
+cp agents/ctf-*.md ~/.claude/agents/
+
+# （オプション）汎用エージェントもコピーする場合
 cp agents/*.md ~/.claude/agents/
-cp commands/*.md ~/.claude/commands/
-cp rules/*.md ~/.claude/rules/
-cp contexts/*.md ~/.claude/contexts/
-cp -r skills/* ~/.claude/skills/
+```
 
-# Hook設定を ~/.claude/settings.json に追加
-# hooks/hooks.json の内容を参照
+**導入されるCTFエージェント:**
+
+| ファイル | 役割 |
+|----------|------|
+| `ctf-orchestrator.md` | 問題の振り分け・進捗管理 |
+| `ctf-web.md` | Web問題（SQLi, XSS, LFI等） |
+| `ctf-crypto.md` | 暗号問題（RSA, XOR, AES等） |
+| `ctf-forensics.md` | フォレンジック（ステガノ, PCAP等） |
+| `ctf-pwn.md` | Pwn/Reversing（BOF, ROP等） |
+| `ctf-osint.md` | OSINT（画像調査, Dorking等） |
+| `ctf-scraper.md` | CTFプラットフォームスクレイピング |
+
+### 4. Commands（コマンド）の導入
+
+Commands は `/command-name` 形式で呼び出すスラッシュコマンドです。
+
+```bash
+# CTFコマンドをコピー
+cp commands/ctf-*.md ~/.claude/commands/
+
+# （オプション）汎用コマンドもコピーする場合
+cp commands/*.md ~/.claude/commands/
+```
+
+### 5. Rules（ルール）と Contexts（コンテキスト）の導入
+
+```bash
+# CTFルールをコピー
+cp rules/ctf.md ~/.claude/rules/
+
+# CTFコンテキストをコピー
+cp contexts/ctf.md ~/.claude/contexts/
+```
+
+### 6. Skills（スキル）の導入
+
+Skills は知識ベースと学習パターンを提供します。
+
+```bash
+# CTFスキルをコピー
+cp -r skills/ctf-knowledge ~/.claude/skills/
+cp -r skills/ctf-learning ~/.claude/skills/
+```
+
+### 7. Hooks（フック）の導入
+
+Hooks はツール実行時やセッション終了時に自動で処理を行う機能です。
+
+#### 方法A: settings.json に直接追加（推奨）
+
+`~/.claude/settings.json` を編集し、以下の hooks 設定を追加：
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "tool == \"Bash\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ~/.claude/scripts/hooks/ctf-flag-detect.js"
+          }
+        ],
+        "description": "CTF: Bash出力にフラグパターンがあれば自動検出"
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ~/.claude/scripts/hooks/ctf-session-save.js"
+          }
+        ],
+        "description": "CTF: セッション終了時に解法パターンを抽出・保存"
+      }
+    ]
+  }
+}
+```
+
+#### 方法B: スクリプトをコピーしてパスを調整
+
+```bash
+# Hookスクリプトをコピー
+mkdir -p ~/.claude/scripts/hooks
+cp scripts/hooks/ctf-*.js ~/.claude/scripts/hooks/
+```
+
+**Hooks の説明:**
+
+| Hook | トリガー | 機能 |
+|------|----------|------|
+| `ctf-flag-detect.js` | Bash実行後 | 出力からフラグパターン（`FLAG{...}`等）を自動検出 |
+| `ctf-session-save.js` | セッション終了 | 解法パターンを抽出し `instincts.json` に保存 |
+
+### 8. MCP設定（Playwright自動化）
+
+ブラウザ自動化が必要な場合、MCP設定を追加します。
+
+```bash
+# MCP設定をコピー
+cp mcp-configs/mcp-servers.json ~/.claude/
+
+# Playwrightをインストール
+npm install -g @anthropic-ai/mcp-playwright
+npx playwright install chromium
+```
+
+### 9. テンプレートのコピー（オプション）
+
+```bash
+# ソルバーテンプレートをコピー
+cp -r templates ~/.claude/
+```
+
+---
+
+## 導入確認
+
+```bash
+# 設定ファイルの確認
+ls ~/.claude/agents/ctf-*.md
+ls ~/.claude/commands/ctf-*.md
+ls ~/.claude/skills/ctf-*
+
+# CTFモードで起動
+claude --context ctf
+
+# コマンド一覧確認
+> /help
+```
+
+---
+
+## 一括インストールスクリプト
+
+すべてを一括でインストールするには：
+
+```bash
+#!/bin/bash
+# install.sh
+
+CLAUDE_DIR="$HOME/.claude"
+REPO_DIR="$(pwd)"
+
+# ディレクトリ作成
+mkdir -p "$CLAUDE_DIR"/{agents,commands,rules,contexts,skills,scripts/hooks}
+
+# コピー
+cp "$REPO_DIR"/agents/*.md "$CLAUDE_DIR/agents/"
+cp "$REPO_DIR"/commands/*.md "$CLAUDE_DIR/commands/"
+cp "$REPO_DIR"/rules/*.md "$CLAUDE_DIR/rules/"
+cp "$REPO_DIR"/contexts/*.md "$CLAUDE_DIR/contexts/"
+cp -r "$REPO_DIR"/skills/* "$CLAUDE_DIR/skills/"
+cp "$REPO_DIR"/scripts/hooks/*.js "$CLAUDE_DIR/scripts/hooks/"
+cp -r "$REPO_DIR"/templates "$CLAUDE_DIR/"
+
+echo "インストール完了！"
+echo "~/.claude/settings.json に hooks 設定を追加してください"
+```
+
+```bash
+chmod +x install.sh
+./install.sh
 ```
 
 ---
