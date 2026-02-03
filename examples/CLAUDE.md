@@ -1,100 +1,72 @@
-# プロジェクト CLAUDE.md の例
+# CTF プロジェクト CLAUDE.md 例
 
-これはプロジェクトレベルの CLAUDE.md ファイルの例です。プロジェクトルートに配置してください。
+CTF参加時のプロジェクト設定例。
 
-## プロジェクト概要
-
-[プロジェクトの簡潔な説明 - 何をするか、技術スタック]
-
-## 重要なルール
-
-### 1. コード構成
-
-- 大きなファイルを少なくより、小さなファイルを多く
-- 高凝集、低結合
-- 通常200-400行、ファイルあたり最大800行
-- タイプ別ではなく機能/ドメイン別に整理
-
-### 2. コードスタイル
-
-- コード、コメント、ドキュメントに絵文字を使わない
-- 常にイミュータビリティ - オブジェクトや配列を変更しない
-- 本番コードで console.log を使わない
-- try/catch による適切なエラーハンドリング
-- Zod などによる入力バリデーション
-
-### 3. テスト
-
-- TDD: テストを先に書く
-- 最低80%カバレッジ
-- ユーティリティにはユニットテスト
-- API にはインテグレーションテスト
-- 重要なフローには E2E テスト
-
-### 4. セキュリティ
-
-- シークレットをハードコードしない
-- 機密データには環境変数を使用
-- すべてのユーザー入力をバリデート
-- パラメータ化クエリのみ使用
-- CSRF 保護を有効化
-
-## ファイル構造
-
-```
-src/
-|-- app/              # Next.js app router
-|-- components/       # 再利用可能なUIコンポーネント
-|-- hooks/            # カスタムReact hooks
-|-- lib/              # ユーティリティライブラリ
-|-- types/            # TypeScript定義
-```
-
-## 主要パターン
-
-### API レスポンスフォーマット
-
-```typescript
-interface ApiResponse<T> {
-  success: boolean
-  data?: T
-  error?: string
-}
-```
-
-### エラーハンドリング
-
-```typescript
-try {
-  const result = await operation()
-  return { success: true, data: result }
-} catch (error) {
-  console.error('Operation failed:', error)
-  return { success: false, error: 'User-friendly message' }
-}
-```
-
-## 環境変数
+## 基本設定
 
 ```bash
-# 必須
-DATABASE_URL=
-API_KEY=
-
-# オプション
-DEBUG=false
+# CTFモードで起動
+claude --context ctf
 ```
 
-## 利用可能な command
+## コマンド
 
-- `/tdd` - テスト駆動開発ワークフロー
-- `/plan` - 実装計画の作成
-- `/code-review` - コード品質のレビュー
-- `/build-fix` - ビルドエラーの修正
+| コマンド | 機能 |
+|----------|------|
+| `/ctf-start` | セッション開始、問題一覧取得 |
+| `/ctf-solve [問題名]` | 専門エージェントで自動解析 |
+| `/ctf-recon [URL/ファイル]` | 初手偵察を自動実行 |
+| `/ctf-flag [FLAG]` | フラグ検証・記録 |
 
-## Git ワークフロー
+## エージェント
 
-- Conventional commits: `feat:`, `fix:`, `refactor:`, `docs:`, `test:`
-- main に直接 commit しない
-- PR にはレビューが必要
-- マージ前にすべてのテストをパスする必要あり
+| エージェント | 用途 |
+|-------------|------|
+| ctf-orchestrator | 問題振り分け・進捗管理 |
+| ctf-web | SQLi, XSS, LFI, SSRF 等 |
+| ctf-crypto | RSA, XOR, エンコード |
+| ctf-forensics | ステガノ, メモリダンプ, PCAP |
+| ctf-pwn | BOF, ROP, フォーマット文字列 |
+| ctf-osint | 画像調査, Google Dorking |
+
+## 環境: Kali Linux
+
+以下のツールは標準でインストール済み:
+
+```bash
+# 情報収集
+nmap, nikto, whatweb, wfuzz, gobuster, dirb, ffuf
+curl, wget, httpie
+
+# Web
+sqlmap, burpsuite, zaproxy
+xsser, dalfox, commix
+
+# パスワード
+john, hashcat, hydra, fcrackzip
+
+# Forensics
+binwalk, foremost, volatility3
+exiftool, steghide, zsteg, stegseek
+wireshark, tshark, tcpdump
+autopsy, sleuthkit
+
+# Reversing/Pwn
+gdb, gdb-peda, pwndbg
+radare2, ghidra
+checksec, ROPgadget, one_gadget
+
+# Crypto
+python3, pycryptodome, sage
+
+# その他
+netcat, socat, pwntools
+metasploit, searchsploit
+```
+
+## CTFルール
+
+- 簡単な問題（低配点）から着手
+- 1問3分で進展なければスキップ
+- 過度な検証より実行速度を優先
+- CTF環境外への攻撃は絶対禁止

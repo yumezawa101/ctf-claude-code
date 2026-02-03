@@ -1,416 +1,441 @@
-# Everything Claude Code
+# CTF Claude Code
 
-[![Stars](https://img.shields.io/github/stars/affaan-m/everything-claude-code?style=flat)](https://github.com/affaan-m/everything-claude-code/stargazers)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-![Shell](https://img.shields.io/badge/-Shell-4EAA25?logo=gnu-bash&logoColor=white)
-![TypeScript](https://img.shields.io/badge/-TypeScript-3178C6?logo=typescript&logoColor=white)
-![Markdown](https://img.shields.io/badge/-Markdown-000000?logo=markdown&logoColor=white)
 
-**Anthropic ハッカソン優勝者による Claude Code 設定の完全コレクション。**
-
-実際のプロダクト開発で10ヶ月以上にわたる集中的な日常使用を通じて進化した、本番環境対応の agent、skill、hook、command、rule、MCP 設定。
+**Kali Linux 環境前提**の CTF（Capture The Flag）自動化 Claude Code プラグイン。
 
 ---
 
-## ガイド
+## 特徴
 
-このリポジトリはコードのみです。ガイドですべてを解説しています。
-
-<table>
-<tr>
-<td width="50%">
-<a href="https://x.com/affaanmustafa/status/2012378465664745795">
-<img src="https://github.com/user-attachments/assets/1a471488-59cc-425b-8345-5245c7efbcef" alt="The Shorthand Guide to Everything Claude Code" />
-</a>
-</td>
-<td width="50%">
-<a href="https://x.com/affaanmustafa/status/2014040193557471352">
-<img src="https://github.com/user-attachments/assets/c9ca43bc-b149-427f-b551-af6840c368f0" alt="The Longform Guide to Everything Claude Code" />
-</a>
-</td>
-</tr>
-<tr>
-<td align="center"><b>簡易ガイド</b><br/>セットアップ、基礎、哲学。<b>まずこちらをお読みください。</b></td>
-<td align="center"><b>詳細ガイド</b><br/>トークン最適化、メモリ永続化、eval、並列化。</td>
-</tr>
-</table>
-
-| トピック | 学べること |
-|---------|-----------|
-| トークン最適化 | モデル選択、システムプロンプトの軽量化、バックグラウンドプロセス |
-| メモリ永続化 | セッション間でコンテキストを自動的に保存・読み込む hook |
-| 継続的学習 | セッションから再利用可能な skill へパターンを自動抽出 |
-| 検証ループ | チェックポイント vs 継続的 eval、grader の種類、pass@k メトリクス |
-| 並列化 | Git worktree、カスケード方式、インスタンスをスケールするタイミング |
-| サブエージェントオーケストレーション | コンテキスト問題、反復的取得パターン |
+- 問題の自動分類・優先順位付け
+- カテゴリ別専門エージェント（Web/Crypto/Forensics/Pwn/OSINT）
+- フラグ自動検出 Hook
+- 解法パターンの継続学習
+- Playwright MCP によるブラウザ自動化
 
 ---
 
-## クロスプラットフォームサポート
-
-このプラグインは **Windows、macOS、Linux** を完全サポートしています。すべての hook とスクリプトは最大限の互換性のために Node.js で書き直されました。
-
-### パッケージマネージャー検出
-
-プラグインは以下の優先順位で優先パッケージマネージャー（npm、pnpm、yarn、または bun）を自動検出します：
-
-1. **環境変数**: `CLAUDE_PACKAGE_MANAGER`
-2. **プロジェクト設定**: `.claude/package-manager.json`
-3. **package.json**: `packageManager` フィールド
-4. **ロックファイル**: package-lock.json、yarn.lock、pnpm-lock.yaml、または bun.lockb から検出
-5. **グローバル設定**: `~/.claude/package-manager.json`
-6. **フォールバック**: 利用可能な最初のパッケージマネージャー
-
-優先パッケージマネージャーを設定するには：
+## クイックスタート
 
 ```bash
-# 環境変数経由
-export CLAUDE_PACKAGE_MANAGER=pnpm
+# CTFモードで起動
+claude --context ctf
 
-# グローバル設定経由
-node scripts/setup-package-manager.js --global pnpm
+# セッション開始
+> /ctf-start
 
-# プロジェクト設定経由
-node scripts/setup-package-manager.js --project bun
+# 問題を解く
+> /ctf-solve "Login Bypass"
 
-# 現在の設定を検出
-node scripts/setup-package-manager.js --detect
-```
-
-または Claude Code で `/setup-pm` command を使用してください。
-
----
-
-## 内容
-
-このリポジトリは **Claude Code プラグイン** です - 直接インストールするか、手動でコンポーネントをコピーできます。
-
-```
-everything-claude-code/
-|-- .claude-plugin/   # プラグインとマーケットプレイスのマニフェスト
-|   |-- plugin.json         # プラグインのメタデータとコンポーネントパス
-|   |-- marketplace.json    # /plugin marketplace add 用のマーケットプレイスカタログ
-|
-|-- agents/           # 委譲用の特化型サブエージェント
-|   |-- planner.md           # 機能実装計画
-|   |-- architect.md         # システム設計判断
-|   |-- tdd-guide.md         # テスト駆動開発
-|   |-- code-reviewer.md     # 品質とセキュリティレビュー
-|   |-- security-reviewer.md # 脆弱性分析
-|   |-- build-error-resolver.md
-|   |-- e2e-runner.md        # Playwright E2E テスト
-|   |-- refactor-cleaner.md  # デッドコードクリーンアップ
-|   |-- doc-updater.md       # ドキュメント同期
-|
-|-- skills/           # ワークフロー定義とドメイン知識
-|   |-- coding-standards/           # 言語ベストプラクティス
-|   |-- backend-patterns/           # API、データベース、キャッシュパターン
-|   |-- frontend-patterns/          # React、Next.js パターン
-|   |-- continuous-learning/        # セッションからパターンを自動抽出（詳細ガイド）
-|   |-- continuous-learning-v2/     # 信頼度スコアリング付きの instinct ベース学習
-|   |-- iterative-retrieval/        # サブエージェント用の段階的コンテキスト精緻化
-|   |-- strategic-compact/          # 手動コンパクション提案（詳細ガイド）
-|   |-- tdd-workflow/               # TDD 方法論
-|   |-- security-review/            # セキュリティチェックリスト
-|   |-- eval-harness/               # 検証ループ評価（詳細ガイド）
-|   |-- verification-loop/          # 継続的検証（詳細ガイド）
-|
-|-- commands/         # クイック実行用スラッシュコマンド
-|   |-- tdd.md              # /tdd - テスト駆動開発
-|   |-- plan.md             # /plan - 実装計画
-|   |-- e2e.md              # /e2e - E2E テスト生成
-|   |-- code-review.md      # /code-review - 品質レビュー
-|   |-- build-fix.md        # /build-fix - ビルドエラー修正
-|   |-- refactor-clean.md   # /refactor-clean - デッドコード削除
-|   |-- learn.md            # /learn - セッション中にパターンを抽出（詳細ガイド）
-|   |-- checkpoint.md       # /checkpoint - 検証状態を保存（詳細ガイド）
-|   |-- verify.md           # /verify - 検証ループを実行（詳細ガイド）
-|   |-- setup-pm.md         # /setup-pm - パッケージマネージャーを設定（新規）
-|
-|-- rules/            # 常に従うガイドライン（~/.claude/rules/ にコピー）
-|   |-- security.md         # 必須セキュリティチェック
-|   |-- coding-style.md     # イミュータビリティ、ファイル構成
-|   |-- testing.md          # TDD、80% カバレッジ要件
-|   |-- git-workflow.md     # コミット形式、PR プロセス
-|   |-- agents.md           # サブエージェントに委譲するタイミング
-|   |-- performance.md      # モデル選択、コンテキスト管理
-|
-|-- hooks/            # トリガーベースの自動化
-|   |-- hooks.json                # すべての hook 設定（PreToolUse、PostToolUse、Stop など）
-|   |-- memory-persistence/       # セッションライフサイクル hook（詳細ガイド）
-|   |-- strategic-compact/        # コンパクション提案（詳細ガイド）
-|
-|-- scripts/          # クロスプラットフォーム Node.js スクリプト（新規）
-|   |-- lib/                     # 共有ユーティリティ
-|   |   |-- utils.js             # クロスプラットフォームファイル/パス/システムユーティリティ
-|   |   |-- package-manager.js   # パッケージマネージャー検出と選択
-|   |-- hooks/                   # hook 実装
-|   |   |-- session-start.js     # セッション開始時にコンテキストを読み込む
-|   |   |-- session-end.js       # セッション終了時に状態を保存
-|   |   |-- pre-compact.js       # コンパクション前の状態保存
-|   |   |-- suggest-compact.js   # 戦略的コンパクション提案
-|   |   |-- evaluate-session.js  # セッションからパターンを抽出
-|   |-- setup-package-manager.js # インタラクティブ PM セットアップ
-|
-|-- tests/            # テストスイート（新規）
-|   |-- lib/                     # ライブラリテスト
-|   |-- hooks/                   # hook テスト
-|   |-- run-all.js               # すべてのテストを実行
-|
-|-- contexts/         # 動的システムプロンプト注入 context（詳細ガイド）
-|   |-- dev.md              # 開発モード context
-|   |-- review.md           # コードレビューモード context
-|   |-- research.md         # リサーチ/探索モード context
-|
-|-- examples/         # 設定例とセッション例
-|   |-- CLAUDE.md           # プロジェクトレベル設定例
-|   |-- user-CLAUDE.md      # ユーザーレベル設定例
-|
-|-- mcp-configs/      # MCP サーバー設定
-|   |-- mcp-servers.json    # GitHub、Supabase、Vercel、Railway など
-|
-|-- marketplace.json  # セルフホストマーケットプレイス設定（/plugin marketplace add 用）
+# フラグを記録
+> /ctf-flag FLAG{example}
 ```
 
 ---
 
-## エコシステムツール
+## ディレクトリ構成
 
-### ecc.tools - Skill Creator
+```
+ctf-claude-code/
+|-- agents/              # CTF専門エージェント
+|   |-- ctf-orchestrator.md  # 問題振り分け・進捗管理
+|   |-- ctf-web.md           # Web問題専門
+|   |-- ctf-crypto.md        # 暗号問題専門
+|   |-- ctf-forensics.md     # フォレンジック専門
+|   |-- ctf-pwn.md           # Pwn/Reversing専門
+|   |-- ctf-osint.md         # OSINT専門
+|
+|-- commands/            # スラッシュコマンド
+|   |-- ctf-start.md         # /ctf-start - セッション開始
+|   |-- ctf-solve.md         # /ctf-solve - 問題解析
+|   |-- ctf-recon.md         # /ctf-recon - 初手偵察
+|   |-- ctf-flag.md          # /ctf-flag - フラグ記録
+|   |-- ctf-batch.md         # /ctf-batch - 並列バッチ実行
+|
+|-- skills/              # 知識・学習
+|   |-- ctf-knowledge/       # カテゴリ別解法パターン
+|   |-- ctf-learning/        # 継続学習・instincts
+|       |-- instincts.json   # 学習済みパターン
+|       |-- patterns/        # 大会別解法メモ
+|
+|-- rules/               # ルール
+|   |-- ctf.md               # CTFルール（3分ルール等）
+|
+|-- contexts/            # コンテキスト
+|   |-- ctf.md               # CTFモード設定
+|
+|-- hooks/               # Hook
+|   |-- hooks.json           # フラグ自動検出等
+|
+|-- scripts/             # スクリプト
+|   |-- ctf-parallel.sh      # 並列実行スクリプト
+|   |-- hooks/               # Hook実装
+|       |-- ctf-flag-detect.js
+|       |-- ctf-session-save.js
+|
+|-- templates/           # テンプレート
+|   |-- pwn-template.py      # pwntools テンプレート
+|   |-- crypto-template.py   # 暗号解法テンプレート
+|   |-- web-template.py      # Web攻撃テンプレート
+|   |-- forensics-template.sh # フォレンジック初手
+|
+|-- mcp-configs/         # MCP設定
+|   |-- mcp-servers.json     # Playwright等
+|
+|-- .ctf/                # 進捗管理
+|   |-- progress.json        # 問題ステータス
+```
 
-リポジトリから Claude Code skill を自動生成します。
+---
 
-[GitHub App をインストール](https://github.com/apps/skill-creator) | [ecc.tools](https://ecc.tools)
+## エージェント
 
-リポジトリを分析して以下を作成します：
-- **SKILL.md ファイル** - Claude Code ですぐに使える skill
-- **Instinct コレクション** - continuous-learning-v2 用
-- **パターン抽出** - コミット履歴から学習
+| エージェント | 用途 |
+|-------------|------|
+| ctf-orchestrator | 問題振り分け・進捗管理 |
+| ctf-web | SQLi, XSS, LFI, SSRF 等 |
+| ctf-crypto | RSA, XOR, エンコード |
+| ctf-forensics | ステガノ, メモリダンプ, PCAP |
+| ctf-pwn | BOF, ROP, フォーマット文字列 |
+| ctf-osint | 画像調査, Google Dorking |
+
+---
+
+## コマンド
+
+| コマンド | 機能 |
+|----------|------|
+| `/ctf-start` | セッション開始、問題一覧取得 |
+| `/ctf-solve` | 専門エージェントで問題解析 |
+| `/ctf-recon` | 初手偵察を自動実行 |
+| `/ctf-flag` | フラグ検証・記録 |
+| `/ctf-batch` | 並列バッチ実行セットアップ |
+| `/ctf-auto` | 完全自動（取得→解析→提出） |
+
+---
+
+## 完全自動化（25問自動取得＆自動回答）
+
+```
+┌──────────────────────────────────────────────────────┐
+│ 1. 問題自動取得 (Playwright MCP)                      │
+│    CTFプラットフォームにログイン→問題スクレイピング    │
+└──────────────────────────────────────────────────────┘
+                        ↓
+┌──────────────────────────────────────────────────────┐
+│ 2. 分類・優先順位付け                                 │
+│    カテゴリ判定 → 配点順ソート → 並列グループ分け      │
+└──────────────────────────────────────────────────────┘
+                        ↓
+┌──────────────────────────────────────────────────────┐
+│ 3. 10並列解析                                         │
+│    Web | Crypto | Forensics | Pwn | OSINT × 2        │
+│    各10分で自動スキップ                               │
+└──────────────────────────────────────────────────────┘
+                        ↓
+┌──────────────────────────────────────────────────────┐
+│ 4. フラグ自動提出                                     │
+│    Playwrightで入力→送信→結果確認                    │
+└──────────────────────────────────────────────────────┘
+```
+
+### 使用法
 
 ```bash
-# GitHub App インストール後、skill は以下に表示されます：
-~/.claude/skills/generated/
+# 1. プラットフォーム設定
+cp templates/platform-ctfd.json .ctf/platform.json
+# 認証情報を編集
+
+# 2. 完全自動実行
+/ctf-auto https://ctf.example.com --submit
+
+# 3. 結果確認
+cat .ctf/progress.json
 ```
 
-`continuous-learning-v2` skill と連携して instinct を継承します。
+---
+
+## 並列実行（25問を高速処理）
+
+カテゴリ別に10並列で実行し、大量の問題を短時間で処理。
+
+### 1. 問題ファイル作成
+
+```json
+{
+  "contest": "CTF大会名",
+  "problems": [
+    {"name": "Login Bypass", "category": "web", "points": 100},
+    {"name": "RSA Easy", "category": "crypto", "points": 100},
+    {"name": "Hidden Flag", "category": "forensics", "points": 150}
+  ]
+}
+```
+
+### 2. 並列実行
+
+```bash
+# スクリプトで自動分散
+./scripts/ctf-parallel.sh problems.json 5
+
+# tmuxセッションで監視
+tmux attach -t ctf-parallel
+```
+
+### 3. 手動並列（tmuxなし）
+
+```bash
+# ターミナル1: Web
+claude --context ctf -p "Web問題を解いて: Login Bypass, XSS, SSRF"
+
+# ターミナル2: Crypto
+claude --context ctf -p "Crypto問題を解いて: RSA Easy, XOR, AES"
+
+# ターミナル3: Forensics
+claude --context ctf -p "Forensics問題を解いて: Stego, PCAP, Memory"
+```
+
+---
+
+## 必須ツール（Kali Linux標準）
+
+```bash
+# 情報収集
+nmap, nikto, whatweb, gobuster, ffuf
+
+# Web
+sqlmap, burpsuite, hydra
+
+# Forensics
+binwalk, exiftool, volatility3, wireshark
+
+# Pwn
+gdb, pwndbg, ghidra, radare2, pwntools
+
+# Crypto
+python3, pycryptodome, sage
+```
 
 ---
 
 ## インストール
 
-### オプション 1: プラグインとしてインストール（推奨）
-
-このリポジトリを使う最も簡単な方法 - Claude Code プラグインとしてインストール：
+### 1. リポジトリのクローン
 
 ```bash
-# このリポジトリをマーケットプレイスとして追加
-/plugin marketplace add affaan-m/everything-claude-code
-
-# プラグインをインストール
-/plugin install everything-claude-code@everything-claude-code
+git clone https://github.com/yumezawa101/ctf-claude-code.git
+cd ctf-claude-code
 ```
 
-または `~/.claude/settings.json` に直接追加：
+### 2. Claude Code ディレクトリの準備
+
+```bash
+# ~/.claude ディレクトリがなければ作成
+mkdir -p ~/.claude/{agents,commands,rules,contexts,skills}
+```
+
+### 3. Agents（エージェント）の導入
+
+Agents は Claude Code が特定のタスクを処理する専門エージェントです。
+
+```bash
+# CTF専門エージェントをコピー
+cp agents/ctf-*.md ~/.claude/agents/
+
+# （オプション）汎用エージェントもコピーする場合
+cp agents/*.md ~/.claude/agents/
+```
+
+**導入されるCTFエージェント:**
+
+| ファイル | 役割 |
+|----------|------|
+| `ctf-orchestrator.md` | 問題の振り分け・進捗管理 |
+| `ctf-web.md` | Web問題（SQLi, XSS, LFI等） |
+| `ctf-crypto.md` | 暗号問題（RSA, XOR, AES等） |
+| `ctf-forensics.md` | フォレンジック（ステガノ, PCAP等） |
+| `ctf-pwn.md` | Pwn/Reversing（BOF, ROP等） |
+| `ctf-osint.md` | OSINT（画像調査, Dorking等） |
+| `ctf-scraper.md` | CTFプラットフォームスクレイピング |
+
+### 4. Commands（コマンド）の導入
+
+Commands は `/command-name` 形式で呼び出すスラッシュコマンドです。
+
+```bash
+# CTFコマンドをコピー
+cp commands/ctf-*.md ~/.claude/commands/
+
+# （オプション）汎用コマンドもコピーする場合
+cp commands/*.md ~/.claude/commands/
+```
+
+### 5. Rules（ルール）と Contexts（コンテキスト）の導入
+
+```bash
+# CTFルールをコピー
+cp rules/ctf.md ~/.claude/rules/
+
+# CTFコンテキストをコピー
+cp contexts/ctf.md ~/.claude/contexts/
+```
+
+### 6. Skills（スキル）の導入
+
+Skills は知識ベースと学習パターンを提供します。
+
+```bash
+# CTFスキルをコピー
+cp -r skills/ctf-knowledge ~/.claude/skills/
+cp -r skills/ctf-learning ~/.claude/skills/
+```
+
+### 7. Hooks（フック）の導入
+
+Hooks はツール実行時やセッション終了時に自動で処理を行う機能です。
+
+#### 方法A: settings.json に直接追加（推奨）
+
+`~/.claude/settings.json` を編集し、以下の hooks 設定を追加：
 
 ```json
 {
-  "extraKnownMarketplaces": {
-    "everything-claude-code": {
-      "source": {
-        "source": "github",
-        "repo": "affaan-m/everything-claude-code"
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "tool == \"Bash\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ~/.claude/scripts/hooks/ctf-flag-detect.js"
+          }
+        ],
+        "description": "CTF: Bash出力にフラグパターンがあれば自動検出"
       }
-    }
-  },
-  "enabledPlugins": {
-    "everything-claude-code@everything-claude-code": true
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ~/.claude/scripts/hooks/ctf-session-save.js"
+          }
+        ],
+        "description": "CTF: セッション終了時に解法パターンを抽出・保存"
+      }
+    ]
   }
 }
 ```
 
-これですべての command、agent、skill、hook に即座にアクセスできます。
-
----
-
-### オプション 2: 手動インストール
-
-インストール内容を手動で制御したい場合：
+#### 方法B: スクリプトをコピーしてパスを調整
 
 ```bash
-# リポジトリをクローン
-git clone https://github.com/affaan-m/everything-claude-code.git
-
-# agent を Claude 設定にコピー
-cp everything-claude-code/agents/*.md ~/.claude/agents/
-
-# rule をコピー
-cp everything-claude-code/rules/*.md ~/.claude/rules/
-
-# command をコピー
-cp everything-claude-code/commands/*.md ~/.claude/commands/
-
-# skill をコピー
-cp -r everything-claude-code/skills/* ~/.claude/skills/
+# Hookスクリプトをコピー
+mkdir -p ~/.claude/scripts/hooks
+cp scripts/hooks/ctf-*.js ~/.claude/scripts/hooks/
 ```
 
-#### settings.json に hook を追加
+**Hooks の説明:**
 
-`hooks/hooks.json` から hook を `~/.claude/settings.json` にコピーしてください。
+| Hook | トリガー | 機能 |
+|------|----------|------|
+| `ctf-flag-detect.js` | Bash実行後 | 出力からフラグパターン（`FLAG{...}`等）を自動検出 |
+| `ctf-session-save.js` | セッション終了 | 解法パターンを抽出し `instincts.json` に保存 |
 
-#### MCP を設定
+### 8. MCP設定（Playwright自動化）
 
-`mcp-configs/mcp-servers.json` から必要な MCP サーバーを `~/.claude.json` にコピーしてください。
-
-**重要:** `YOUR_*_HERE` プレースホルダーを実際の API キーに置き換えてください。
-
----
-
-## 主要コンセプト
-
-### Agents
-
-サブエージェントは限定されたスコープで委譲されたタスクを処理します。例：
-
-```markdown
----
-name: code-reviewer
-description: 品質、セキュリティ、保守性のためにコードをレビューする
-tools: ["Read", "Grep", "Glob", "Bash"]
-model: opus
----
-
-あなたはシニアコードレビュアーです...
-```
-
-### Skills
-
-skill は command または agent によって呼び出されるワークフロー定義です：
-
-```markdown
-# TDD ワークフロー
-
-1. まずインターフェースを定義
-2. 失敗するテストを書く（RED）
-3. 最小限のコードを実装（GREEN）
-4. リファクタリング（IMPROVE）
-5. 80%以上のカバレッジを確認
-```
-
-### Hooks
-
-hook はツールイベントで発火します。例 - console.log について警告：
-
-```json
-{
-  "matcher": "tool == \"Edit\" && tool_input.file_path matches \"\\\\.(ts|tsx|js|jsx)$\"",
-  "hooks": [{
-    "type": "command",
-    "command": "#!/bin/bash\ngrep -n 'console\\.log' \"$file_path\" && echo '[Hook] console.log を削除してください' >&2"
-  }]
-}
-```
-
-### Rules
-
-rule は常に従うガイドラインです。モジュラーに保ちましょう：
-
-```
-~/.claude/rules/
-  security.md      # シークレットのハードコード禁止
-  coding-style.md  # イミュータビリティ、ファイル制限
-  testing.md       # TDD、カバレッジ要件
-```
-
----
-
-## テストの実行
-
-プラグインには包括的なテストスイートが含まれています：
+ブラウザ自動化が必要な場合、MCP設定を追加します。
 
 ```bash
-# すべてのテストを実行
-node tests/run-all.js
+# MCP設定をコピー
+cp mcp-configs/mcp-servers.json ~/.claude/
 
-# 個別のテストファイルを実行
-node tests/lib/utils.test.js
-node tests/lib/package-manager.test.js
-node tests/hooks/hooks.test.js
+# Playwrightをインストール
+npm install -g @anthropic-ai/mcp-playwright
+npx playwright install chromium
+```
+
+### 9. テンプレートのコピー（オプション）
+
+```bash
+# ソルバーテンプレートをコピー
+cp -r templates ~/.claude/
 ```
 
 ---
 
-## コントリビュート
+## 導入確認
 
-**コントリビュートを歓迎し、推奨しています。**
+```bash
+# 設定ファイルの確認
+ls ~/.claude/agents/ctf-*.md
+ls ~/.claude/commands/ctf-*.md
+ls ~/.claude/skills/ctf-*
 
-このリポジトリはコミュニティリソースとなることを目的としています。以下をお持ちの場合：
-- 便利な agent や skill
-- 賢い hook
-- より良い MCP 設定
-- 改善された rule
+# CTFモードで起動
+claude --context ctf
 
-ぜひコントリビュートしてください！ガイドラインは [CONTRIBUTING.md](CONTRIBUTING.md) をご覧ください。
-
-### コントリビュートのアイデア
-
-- 言語固有の skill（Python、Go、Rust パターン）
-- フレームワーク固有の設定（Django、Rails、Laravel）
-- DevOps agent（Kubernetes、Terraform、AWS）
-- テスト戦略（さまざまなフレームワーク）
-- ドメイン固有の知識（ML、データエンジニアリング、モバイル）
+# コマンド一覧確認
+> /help
+```
 
 ---
 
-## 背景
+## 一括インストールスクリプト
 
-私は実験的ロールアウトから Claude Code を使用しています。2025年9月に [@DRodriguezFX](https://x.com/DRodriguezFX) と共に [zenith.chat](https://zenith.chat) を構築して Anthropic x Forum Ventures ハッカソンで優勝しました - すべて Claude Code を使用して。
+すべてを一括でインストールするには：
 
-これらの設定は複数の本番アプリケーションで実戦テスト済みです。
+```bash
+#!/bin/bash
+# install.sh
 
----
+CLAUDE_DIR="$HOME/.claude"
+REPO_DIR="$(pwd)"
 
-## 重要な注意事項
+# ディレクトリ作成
+mkdir -p "$CLAUDE_DIR"/{agents,commands,rules,contexts,skills,scripts/hooks}
 
-### コンテキストウィンドウ管理
+# コピー
+cp "$REPO_DIR"/agents/*.md "$CLAUDE_DIR/agents/"
+cp "$REPO_DIR"/commands/*.md "$CLAUDE_DIR/commands/"
+cp "$REPO_DIR"/rules/*.md "$CLAUDE_DIR/rules/"
+cp "$REPO_DIR"/contexts/*.md "$CLAUDE_DIR/contexts/"
+cp -r "$REPO_DIR"/skills/* "$CLAUDE_DIR/skills/"
+cp "$REPO_DIR"/scripts/hooks/*.js "$CLAUDE_DIR/scripts/hooks/"
+cp -r "$REPO_DIR"/templates "$CLAUDE_DIR/"
 
-**重要:** すべての MCP を一度に有効にしないでください。有効なツールが多すぎると、200k のコンテキストウィンドウが 70k に縮小する可能性があります。
+echo "インストール完了！"
+echo "~/.claude/settings.json に hooks 設定を追加してください"
+```
 
-目安：
-- 20-30 の MCP を設定
-- プロジェクトごとに 10 個未満を有効化
-- アクティブなツールは 80 個未満
-
-プロジェクト設定で `disabledMcpServers` を使用して未使用のものを無効にしてください。
-
-### カスタマイズ
-
-これらの設定は私のワークフロー向けです。あなたは：
-1. 共感できるものから始める
-2. 自分のスタックに合わせて修正
-3. 使わないものは削除
-4. 独自のパターンを追加
-
----
-
-## Star 履歴
-
-[![Star History Chart](https://api.star-history.com/svg?repos=affaan-m/everything-claude-code&type=Date)](https://star-history.com/#affaan-m/everything-claude-code&Date)
+```bash
+chmod +x install.sh
+./install.sh
+```
 
 ---
 
-## リンク
+## 過去の解法を学習させる
 
-- **簡易ガイド（まずはこちら）:** [The Shorthand Guide to Everything Claude Code](https://x.com/affaanmustafa/status/2012378465664745795)
-- **詳細ガイド（上級）:** [The Longform Guide to Everything Claude Code](https://x.com/affaanmustafa/status/2014040193557471352)
-- **フォロー:** [@affaanmustafa](https://x.com/affaanmustafa)
-- **zenith.chat:** [zenith.chat](https://zenith.chat)
+`skills/ctf-learning/patterns/` に大会ごとのWriteupを追加：
+
+```markdown
+# 大会名 20XX
+
+## 問題名（カテゴリ/配点）
+**パターン**: SQLi blind
+**解法**: time-based injection
+**ペイロード**: `' AND SLEEP(5)--`
+**学び**: WAFバイパスには大文字小文字混在が有効
+```
+
+`skills/ctf-learning/instincts.json` に自動学習されたパターンが蓄積されます。
 
 ---
 
 ## ライセンス
 
-MIT - 自由に使用し、必要に応じて修正し、可能であればコントリビュートしてください。
-
----
-
-**役に立ったらこのリポジトリに Star を。両方のガイドを読んでください。素晴らしいものを作りましょう。**
+MIT
