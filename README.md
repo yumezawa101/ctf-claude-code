@@ -1,10 +1,6 @@
 # CTF Claude Code
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-
 **Kali Linux 環境前提**の CTF（Capture The Flag）自動化 Claude Code プラグイン。
-
----
 
 ## 特徴
 
@@ -16,109 +12,140 @@
 
 ---
 
-## クイックスタート
+## 前提条件
+
+| 必須 | バージョン | 確認コマンド |
+|------|-----------|-------------|
+| Claude Code | 最新版 | `claude --version` |
+| Node.js | 18以上 | `node --version` |
+| Kali Linux | 推奨 | `uname -a` |
+
+---
+
+## インストール
+
+### 一括インストール（推奨）
 
 ```bash
-# CTFモードで起動
+git clone https://github.com/yumezawa101/ctf-claude-code.git
+cd ctf-claude-code
+./install.sh
+```
+
+### Hooks設定（必須）
+
+`~/.claude/settings.json` に以下を追加：
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "tool == \"Bash\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ~/.claude/scripts/hooks/ctf-flag-detect.js"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ~/.claude/scripts/hooks/ctf-session-save.js"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### 導入確認
+
+```bash
+ls ~/.claude/agents/ctf-*.md
+ls ~/.claude/commands/ctf-*.md
 claude --context ctf
-
-# セッション開始
-> /ctf-start
-
-# 問題を解く
-> /ctf-solve "Login Bypass"
-
-# フラグを記録
-> /ctf-flag FLAG{example}
 ```
 
 ---
 
-## ディレクトリ構成
+## 利用フロー
+
+### どのフローを選ぶ？
 
 ```
-ctf-claude-code/
-|-- agents/              # CTF専門エージェント
-|   |-- ctf-orchestrator.md  # 問題振り分け・進捗管理
-|   |-- ctf-web.md           # Web問題専門
-|   |-- ctf-crypto.md        # 暗号問題専門
-|   |-- ctf-forensics.md     # フォレンジック専門
-|   |-- ctf-pwn.md           # Pwn/Reversing専門
-|   |-- ctf-osint.md         # OSINT専門
-|   |-- ctf-scraper.md       # CTFプラットフォームスクレイピング
-|
-|-- commands/            # スラッシュコマンド
-|   |-- ctf-start.md         # /ctf-start - セッション開始
-|   |-- ctf-solve.md         # /ctf-solve - 問題解析
-|   |-- ctf-recon.md         # /ctf-recon - 初手偵察
-|   |-- ctf-flag.md          # /ctf-flag - フラグ記録
-|   |-- ctf-hint.md          # /ctf-hint - ヒント取得
-|   |-- ctf-batch.md         # /ctf-batch - 並列バッチ実行
-|   |-- ctf-auto.md          # /ctf-auto - 完全自動化
-|
-|-- skills/              # 知識・学習
-|   |-- ctf-knowledge/       # カテゴリ別解法パターン
-|   |-- ctf-learning/        # 継続学習・instincts
-|       |-- instincts.json   # 学習済みパターン
-|       |-- patterns/        # 大会別解法メモ
-|
-|-- rules/               # ルール
-|   |-- ctf.md               # CTFルール（3分ルール等）
-|
-|-- contexts/            # コンテキスト
-|   |-- ctf.md               # CTFモード設定
-|
-|-- hooks/               # Hook
-|   |-- hooks.json           # フラグ自動検出等
-|
-|-- scripts/             # スクリプト
-|   |-- ctf-auto-solver.js   # 自動解法スクリプト
-|   |-- ctf-parallel.sh      # 並列実行スクリプト
-|   |-- hooks/               # Hook実装
-|   |   |-- ctf-flag-detect.js
-|   |   |-- ctf-session-save.js
-|   |-- lib/                 # ライブラリ
-|       |-- utils.js         # ユーティリティ関数
-|
-|-- templates/           # テンプレート
-|   |-- pwn-template.py      # pwntools テンプレート
-|   |-- crypto-template.py   # 暗号解法テンプレート
-|   |-- web-template.py      # Web攻撃テンプレート
-|   |-- forensics-template.sh # フォレンジック初手
-|
-|-- mcp-configs/         # MCP設定
-|   |-- mcp-servers.json     # Playwright等
-|
-|-- .ctf/                # 進捗管理
-|   |-- progress.json        # 問題ステータス
+┌─────────────────────────────────────────────────────────┐
+│  CTF開始                                                 │
+│    ↓                                                    │
+│  問題数は？                                              │
+│    ├── 1-3問 → 基本フロー（手動）                        │
+│    ├── 4問以上 → 並列フロー（/ctf-batch）                │
+│    └── 全自動したい → 完全自動化（/ctf-auto）            │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 基本フロー（1問ずつ手動）
+
+```bash
+claude --context ctf      # 1. CTFモードで起動
+/ctf-start                # 2. セッション開始
+/ctf-recon <URL>          # 3. 偵察（オプション）
+/ctf-solve "問題名"       # 4. 問題解析
+/ctf-hint "特徴"          # 5. ヒント取得（行き詰まった時）
+/ctf-flag FLAG{...}       # 6. フラグ記録
+```
+
+### 並列フロー（複数問題を同時処理）
+
+```bash
+# 1. problems.json を作成
+# 2. 並列実行
+./scripts/ctf-parallel.sh problems.json 5
+```
+
+### 完全自動化フロー（取得→解析→提出）
+
+```bash
+# 1. プラットフォーム設定
+cp templates/platform-ctfd.json .ctf/platform.json
+
+# 2. 完全自動実行
+/ctf-auto https://ctf.example.com --submit
 ```
 
 ---
 
-## エージェント
+## コマンド一覧
 
-| エージェント | 用途 |
-|-------------|------|
-| ctf-orchestrator | 問題振り分け・進捗管理 |
-| ctf-web | SQLi, XSS, LFI, SSRF 等 |
-| ctf-crypto | RSA, XOR, エンコード |
-| ctf-forensics | ステガノ, メモリダンプ, PCAP |
-| ctf-pwn | BOF, ROP, フォーマット文字列 |
-| ctf-osint | 画像調査, Google Dorking |
+| コマンド | 機能 | 使用例 |
+|----------|------|--------|
+| `/ctf-start` | セッション開始 | `/ctf-start` |
+| `/ctf-solve` | 問題解析 | `/ctf-solve "Login Bypass"` |
+| `/ctf-recon` | 初手偵察 | `/ctf-recon http://target.com` |
+| `/ctf-flag` | フラグ記録 | `/ctf-flag FLAG{example}` |
+| `/ctf-hint` | ヒント取得 | `/ctf-hint "PNG画像"` |
+| `/ctf-batch` | 並列実行 | `/ctf-batch problems.json` |
+| `/ctf-auto` | 完全自動化 | `/ctf-auto <URL> --submit` |
 
 ---
 
-## コマンド
+## エージェント一覧
 
-| コマンド | 機能 |
-|----------|------|
-| `/ctf-start` | セッション開始、問題一覧取得 |
-| `/ctf-solve` | 専門エージェントで問題解析 |
-| `/ctf-recon` | 初手偵察を自動実行 |
-| `/ctf-flag` | フラグ検証・記録 |
-| `/ctf-hint` | 学習データからヒントを取得 |
-| `/ctf-batch` | 並列バッチ実行セットアップ |
-| `/ctf-auto` | 完全自動（取得→解析→提出） |
+| エージェント | 用途 | 対応する問題例 |
+|-------------|------|---------------|
+| ctf-orchestrator | 問題振り分け・進捗管理 | 全般 |
+| ctf-web | Web脆弱性 | SQLi, XSS, LFI, SSRF |
+| ctf-crypto | 暗号解読 | RSA, XOR, AES, Base64 |
+| ctf-forensics | フォレンジック | ステガノ, PCAP, メモリダンプ |
+| ctf-pwn | バイナリ解析 | BOF, ROP, Format String |
+| ctf-osint | 公開情報調査 | 画像調査, Google Dorking |
+| ctf-scraper | プラットフォーム操作 | CTFd, rCTF |
 
 ---
 
@@ -163,9 +190,7 @@ cat .ctf/progress.json
 
 ---
 
-## 並列実行（25問を高速処理）
-
-カテゴリ別に10並列で実行し、大量の問題を短時間で処理。
+## 並列実行（大量問題を高速処理）
 
 ### 1. 問題ファイル作成
 
@@ -183,10 +208,7 @@ cat .ctf/progress.json
 ### 2. 並列実行
 
 ```bash
-# スクリプトで自動分散
 ./scripts/ctf-parallel.sh problems.json 5
-
-# tmuxセッションで監視
 tmux attach -t ctf-parallel
 ```
 
@@ -207,214 +229,65 @@ claude --context ctf -p "Forensics問題を解いて: Stego, PCAP, Memory"
 
 ## 必須ツール（Kali Linux標準）
 
-```bash
-# 情報収集
-nmap, nikto, whatweb, gobuster, ffuf
+| カテゴリ | ツール |
+|---------|--------|
+| 情報収集 | nmap, nikto, whatweb, gobuster, ffuf |
+| Web | sqlmap, burpsuite, hydra |
+| Forensics | binwalk, exiftool, volatility3, wireshark |
+| Pwn | gdb, pwndbg, ghidra, radare2, pwntools |
+| Crypto | python3, pycryptodome, sage |
 
-# Web
-sqlmap, burpsuite, hydra
+---
 
-# Forensics
-binwalk, exiftool, volatility3, wireshark
+## ディレクトリ構成
 
-# Pwn
-gdb, pwndbg, ghidra, radare2, pwntools
-
-# Crypto
-python3, pycryptodome, sage
+```
+ctf-claude-code/
+|-- install.sh           # 一括インストールスクリプト
+|-- agents/              # CTF専門エージェント
+|-- commands/            # スラッシュコマンド
+|-- skills/              # 知識・学習データ
+|   |-- ctf-knowledge/   # カテゴリ別解法パターン
+|   |-- ctf-learning/    # 継続学習・instincts
+|-- rules/               # CTFルール
+|-- contexts/            # CTFモード設定
+|-- hooks/               # Hook設定
+|-- scripts/             # 自動化スクリプト
+|-- templates/           # ソルバーテンプレート
+|-- mcp-configs/         # MCP設定（Playwright等）
+|-- .ctf/                # 進捗管理
 ```
 
 ---
 
-## インストール
+## 手動インストール（詳細）
 
-### 1. リポジトリのクローン
+一括インストールではなく手動で設定したい場合：
+
+### 1. ディレクトリ準備
 
 ```bash
-git clone https://github.com/yumezawa101/ctf-claude-code.git
-cd ctf-claude-code
+mkdir -p ~/.claude/{agents,commands,rules,contexts,skills,scripts/hooks}
 ```
 
-### 2. Claude Code ディレクトリの準備
+### 2. ファイルコピー
 
 ```bash
-# ~/.claude ディレクトリがなければ作成
-mkdir -p ~/.claude/{agents,commands,rules,contexts,skills}
-```
-
-### 3. Agents（エージェント）の導入
-
-Agents は Claude Code が特定のタスクを処理する専門エージェントです。
-
-```bash
-# CTF専門エージェントをコピー
 cp agents/*.md ~/.claude/agents/
-```
-
-**導入されるCTFエージェント:**
-
-| ファイル | 役割 |
-|----------|------|
-| `ctf-orchestrator.md` | 問題の振り分け・進捗管理 |
-| `ctf-web.md` | Web問題（SQLi, XSS, LFI等） |
-| `ctf-crypto.md` | 暗号問題（RSA, XOR, AES等） |
-| `ctf-forensics.md` | フォレンジック（ステガノ, PCAP等） |
-| `ctf-pwn.md` | Pwn/Reversing（BOF, ROP等） |
-| `ctf-osint.md` | OSINT（画像調査, Dorking等） |
-| `ctf-scraper.md` | CTFプラットフォームスクレイピング |
-
-### 4. Commands（コマンド）の導入
-
-Commands は `/command-name` 形式で呼び出すスラッシュコマンドです。
-
-```bash
-# CTFコマンドをコピー
 cp commands/*.md ~/.claude/commands/
-```
-
-### 5. Rules（ルール）と Contexts（コンテキスト）の導入
-
-```bash
-# CTFルールをコピー
-cp rules/ctf.md ~/.claude/rules/
-
-# CTFコンテキストをコピー
-cp contexts/ctf.md ~/.claude/contexts/
-```
-
-### 6. Skills（スキル）の導入
-
-Skills は知識ベースと学習パターンを提供します。
-
-```bash
-# CTFスキルをコピー
-cp -r skills/ctf-knowledge ~/.claude/skills/
-cp -r skills/ctf-learning ~/.claude/skills/
-```
-
-### 7. Hooks（フック）の導入
-
-Hooks はツール実行時やセッション終了時に自動で処理を行う機能です。
-
-#### 方法A: settings.json に直接追加（推奨）
-
-`~/.claude/settings.json` を編集し、以下の hooks 設定を追加：
-
-```json
-{
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "tool == \"Bash\"",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ~/.claude/scripts/hooks/ctf-flag-detect.js"
-          }
-        ],
-        "description": "CTF: Bash出力にフラグパターンがあれば自動検出"
-      }
-    ],
-    "SessionEnd": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ~/.claude/scripts/hooks/ctf-session-save.js"
-          }
-        ],
-        "description": "CTF: セッション終了時に解法パターンを抽出・保存"
-      }
-    ]
-  }
-}
-```
-
-#### 方法B: スクリプトをコピーしてパスを調整
-
-```bash
-# Hookスクリプトをコピー
-mkdir -p ~/.claude/scripts/hooks
-cp scripts/hooks/ctf-*.js ~/.claude/scripts/hooks/
-```
-
-**Hooks の説明:**
-
-| Hook | トリガー | 機能 |
-|------|----------|------|
-| `ctf-flag-detect.js` | Bash実行後 | 出力からフラグパターン（`FLAG{...}`等）を自動検出 |
-| `ctf-session-save.js` | セッション終了 | 解法パターンを抽出し `instincts.json` に保存 |
-
-### 8. MCP設定（Playwright自動化）
-
-ブラウザ自動化が必要な場合、MCP設定を追加します。
-
-```bash
-# MCP設定をコピー
-cp mcp-configs/mcp-servers.json ~/.claude/
-
-# Playwrightをインストール
-npm install -g @anthropic-ai/mcp-playwright
-npx playwright install chromium
-```
-
-### 9. テンプレートのコピー（オプション）
-
-```bash
-# ソルバーテンプレートをコピー
+cp rules/*.md ~/.claude/rules/
+cp contexts/*.md ~/.claude/contexts/
+cp -r skills/* ~/.claude/skills/
+cp scripts/hooks/*.js ~/.claude/scripts/hooks/
 cp -r templates ~/.claude/
 ```
 
----
-
-## 導入確認
+### 3. MCP設定（ブラウザ自動化が必要な場合）
 
 ```bash
-# 設定ファイルの確認
-ls ~/.claude/agents/ctf-*.md
-ls ~/.claude/commands/ctf-*.md
-ls ~/.claude/skills/ctf-*
-
-# CTFモードで起動
-claude --context ctf
-
-# コマンド一覧確認
-> /help
-```
-
----
-
-## 一括インストールスクリプト
-
-すべてを一括でインストールするには：
-
-```bash
-#!/bin/bash
-# install.sh
-
-CLAUDE_DIR="$HOME/.claude"
-REPO_DIR="$(pwd)"
-
-# ディレクトリ作成
-mkdir -p "$CLAUDE_DIR"/{agents,commands,rules,contexts,skills,scripts/hooks}
-
-# コピー
-cp "$REPO_DIR"/agents/*.md "$CLAUDE_DIR/agents/"
-cp "$REPO_DIR"/commands/*.md "$CLAUDE_DIR/commands/"
-cp "$REPO_DIR"/rules/*.md "$CLAUDE_DIR/rules/"
-cp "$REPO_DIR"/contexts/*.md "$CLAUDE_DIR/contexts/"
-cp -r "$REPO_DIR"/skills/* "$CLAUDE_DIR/skills/"
-cp "$REPO_DIR"/scripts/hooks/*.js "$CLAUDE_DIR/scripts/hooks/"
-cp -r "$REPO_DIR"/templates "$CLAUDE_DIR/"
-
-echo "インストール完了！"
-echo "~/.claude/settings.json に hooks 設定を追加してください"
-```
-
-```bash
-chmod +x install.sh
-./install.sh
+cp mcp-configs/mcp-servers.json ~/.claude/
+npm install -g @anthropic-ai/mcp-playwright
+npx playwright install chromium
 ```
 
 ---
@@ -434,9 +307,3 @@ chmod +x install.sh
 ```
 
 `skills/ctf-learning/instincts.json` に自動学習されたパターンが蓄積されます。
-
----
-
-## ライセンス
-
-MIT
