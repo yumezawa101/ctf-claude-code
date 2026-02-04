@@ -85,8 +85,7 @@ claude --context ctf
 │    ↓                                                    │
 │  問題数は？                                              │
 │    ├── 1-3問 → 基本フロー（手動）                        │
-│    ├── 4問以上 → 並列フロー（/ctf-batch）                │
-│    └── 全自動したい → 完全自動化（/ctf-auto）            │
+│    └── 4問以上 → 自動化フロー（/ctf-auto）               │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -101,22 +100,14 @@ claude --context ctf      # 1. CTFモードで起動
 /ctf-flag FLAG{...}       # 6. フラグ記録
 ```
 
-### 並列フロー（複数問題を同時処理）
+### 自動化フロー（/ctf-auto）
 
 ```bash
-# 1. problems.json を作成
-# 2. 並列実行
-./scripts/ctf-parallel.sh problems.json 5
-```
-
-### 完全自動化フロー（取得→解析→提出）
-
-```bash
-# 1. プラットフォーム設定
-cp templates/platform-ctfd.json .ctf/platform.json
-
-# 2. 完全自動実行
+# URLから自動取得する場合
 /ctf-auto https://ctf.example.com --submit
+
+# problems.json から読み込む場合
+/ctf-auto --submit
 ```
 
 ---
@@ -130,8 +121,7 @@ cp templates/platform-ctfd.json .ctf/platform.json
 | `/ctf-recon` | 初手偵察 | `/ctf-recon http://target.com` |
 | `/ctf-flag` | フラグ記録 | `/ctf-flag FLAG{example}` |
 | `/ctf-hint` | ヒント取得 | `/ctf-hint "PNG画像"` |
-| `/ctf-batch` | 並列実行 | `/ctf-batch problems.json` |
-| `/ctf-auto` | 完全自動化 | `/ctf-auto <URL> --submit` |
+| `/ctf-auto` | 自動化（URL or problems.json） | `/ctf-auto <URL> --submit` |
 
 ---
 
@@ -186,43 +176,6 @@ cp templates/platform-ctfd.json .ctf/platform.json
 
 # 3. 結果確認
 cat .ctf/progress.json
-```
-
----
-
-## 並列実行（大量問題を高速処理）
-
-### 1. 問題ファイル作成
-
-```json
-{
-  "contest": "CTF大会名",
-  "problems": [
-    {"name": "Login Bypass", "category": "web", "points": 100},
-    {"name": "RSA Easy", "category": "crypto", "points": 100},
-    {"name": "Hidden Flag", "category": "forensics", "points": 150}
-  ]
-}
-```
-
-### 2. 並列実行
-
-```bash
-./scripts/ctf-parallel.sh problems.json 5
-tmux attach -t ctf-parallel
-```
-
-### 3. 手動並列（tmuxなし）
-
-```bash
-# ターミナル1: Web
-claude --context ctf -p "Web問題を解いて: Login Bypass, XSS, SSRF"
-
-# ターミナル2: Crypto
-claude --context ctf -p "Crypto問題を解いて: RSA Easy, XOR, AES"
-
-# ターミナル3: Forensics
-claude --context ctf -p "Forensics問題を解いて: Stego, PCAP, Memory"
 ```
 
 ---
