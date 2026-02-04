@@ -1,0 +1,227 @@
+{
+  "contest": "CTF Training Set",
+  "description": "CTF練習用20問セット - 初級〜中級",
+  "flag_format": "FLAG{...}",
+  "problems": [
+    {
+      "id": 1,
+      "name": "Login Bypass",
+      "category": "web",
+      "points": 100,
+      "difficulty": "easy",
+      "description": "このログインフォームをバイパスしてフラグを取得せよ。",
+      "file": "web/login-bypass/",
+      "hint": "SQLインジェクションの基本を思い出せ",
+      "flag": "FLAG{sql_injection_101}"
+    },
+    {
+      "id": 2,
+      "name": "Hidden Comment",
+      "category": "web",
+      "points": 100,
+      "difficulty": "easy",
+      "description": "このページのどこかにフラグが隠されている。",
+      "file": "web/hidden-comment/",
+      "hint": "ソースコードを見てみよう",
+      "flag": "FLAG{view_source_is_your_friend}"
+    },
+    {
+      "id": 3,
+      "name": "Cookie Monster",
+      "category": "web",
+      "points": 200,
+      "difficulty": "medium",
+      "description": "管理者としてログインせよ。",
+      "file": "web/cookie-monster/",
+      "hint": "Cookieの値を確認してみよう",
+      "flag": "FLAG{cookie_manipulation_easy}"
+    },
+    {
+      "id": 4,
+      "name": "Path Traversal",
+      "category": "web",
+      "points": 300,
+      "difficulty": "medium",
+      "description": "ファイル読み込み機能を悪用してフラグを読め。",
+      "file": "web/path-traversal/",
+      "hint": "../を使ってみよう",
+      "flag": "FLAG{directory_traversal_success}"
+    },
+    {
+      "id": 5,
+      "name": "API Leak",
+      "category": "web",
+      "points": 400,
+      "difficulty": "hard",
+      "description": "APIエンドポイントを探索してフラグを見つけよ。",
+      "file": "web/api-leak/",
+      "hint": "robots.txtやAPIドキュメントを探せ",
+      "flag": "FLAG{api_enumeration_master}"
+    },
+    {
+      "id": 6,
+      "name": "Base64 Decode",
+      "category": "crypto",
+      "points": 100,
+      "difficulty": "easy",
+      "description": "この文字列をデコードせよ: RkxBR3tiYXNlNjRfaXNfbm90X2VuY3J5cHRpb259",
+      "file": "crypto/base64-decode/encoded.txt",
+      "hint": "Base64デコードを試してみよう",
+      "flag": "FLAG{base64_is_not_encryption}"
+    },
+    {
+      "id": 7,
+      "name": "Caesar Cipher",
+      "category": "crypto",
+      "points": 150,
+      "difficulty": "easy",
+      "description": "シーザー暗号を解読せよ: IODJ{fdhvdu_flskhu_lv_hdvb}",
+      "file": "crypto/caesar-cipher/cipher.txt",
+      "hint": "ROT13やシフト暗号を試してみよう",
+      "flag": "FLAG{caesar_cipher_is_easy}"
+    },
+    {
+      "id": 8,
+      "name": "XOR Magic",
+      "category": "crypto",
+      "points": 200,
+      "difficulty": "medium",
+      "description": "XOR暗号化されたフラグを復元せよ。鍵は単一バイト。",
+      "file": "crypto/xor-magic/encrypted.bin",
+      "hint": "全ての単一バイト鍵を試してみよう",
+      "flag": "FLAG{xor_bruteforce_works}"
+    },
+    {
+      "id": 9,
+      "name": "RSA Beginner",
+      "category": "crypto",
+      "points": 350,
+      "difficulty": "hard",
+      "description": "小さすぎるRSA鍵を破れ。",
+      "file": "crypto/rsa-beginner/",
+      "hint": "nが小さければ素因数分解できる",
+      "flag": "FLAG{small_rsa_is_weak}"
+    },
+    {
+      "id": 10,
+      "name": "Exif Secrets",
+      "category": "forensics",
+      "points": 100,
+      "difficulty": "easy",
+      "description": "この画像に隠されたフラグを見つけよ。",
+      "file": "forensics/exif-secrets/image.jpg",
+      "hint": "メタデータを確認してみよう",
+      "flag": "FLAG{exif_data_reveals_all}"
+    },
+    {
+      "id": 11,
+      "name": "Hidden in Plain Sight",
+      "category": "forensics",
+      "points": 150,
+      "difficulty": "easy",
+      "description": "このPNG画像に何かが隠されている。",
+      "file": "forensics/hidden-png/secret.png",
+      "hint": "stringsコマンドを使ってみよう",
+      "flag": "FLAG{strings_find_hidden_text}"
+    },
+    {
+      "id": 12,
+      "name": "Zip Password",
+      "category": "forensics",
+      "points": 200,
+      "difficulty": "medium",
+      "description": "パスワード保護されたZIPファイルを解凍せよ。",
+      "file": "forensics/zip-password/protected.zip",
+      "hint": "一般的なパスワードリストで攻撃してみよう",
+      "flag": "FLAG{weak_password_cracked}"
+    },
+    {
+      "id": 13,
+      "name": "PCAP Analysis",
+      "category": "forensics",
+      "points": 300,
+      "difficulty": "hard",
+      "description": "このパケットキャプチャからフラグを抽出せよ。",
+      "file": "forensics/pcap-analysis/capture.pcap",
+      "hint": "HTTPトラフィックを調べてみよう",
+      "flag": "FLAG{packet_capture_forensics}"
+    },
+    {
+      "id": 14,
+      "name": "Buffer Overflow 101",
+      "category": "pwn",
+      "points": 200,
+      "difficulty": "medium",
+      "description": "スタックバッファオーバーフローを悪用せよ。",
+      "file": "pwn/bof-101/",
+      "hint": "リターンアドレスを上書きしよう",
+      "flag": "FLAG{stack_smashing_detected}"
+    },
+    {
+      "id": 15,
+      "name": "Format String",
+      "category": "pwn",
+      "points": 350,
+      "difficulty": "hard",
+      "description": "フォーマット文字列脆弱性を悪用せよ。",
+      "file": "pwn/format-string/",
+      "hint": "%x %s %nを試してみよう",
+      "flag": "FLAG{printf_is_dangerous}"
+    },
+    {
+      "id": 16,
+      "name": "Return to Win",
+      "category": "pwn",
+      "points": 500,
+      "difficulty": "hard",
+      "description": "win関数を呼び出してフラグを取得せよ。",
+      "file": "pwn/ret2win/",
+      "hint": "win関数のアドレスにジャンプしよう",
+      "flag": "FLAG{return_oriented_programming}"
+    },
+    {
+      "id": 17,
+      "name": "Social Media Hunt",
+      "category": "osint",
+      "points": 100,
+      "difficulty": "easy",
+      "description": "ユーザー「ctf_player_2025」のプロフィールからフラグを見つけよ。",
+      "file": "osint/social-media/README.txt",
+      "hint": "様々なSNSプラットフォームを検索しよう",
+      "flag": "FLAG{osint_social_media_recon}"
+    },
+    {
+      "id": 18,
+      "name": "Image Location",
+      "category": "osint",
+      "points": 200,
+      "difficulty": "medium",
+      "description": "この画像が撮影された場所を特定せよ。",
+      "file": "osint/image-location/photo.jpg",
+      "hint": "Google画像検索やGeoGuessr的アプローチを試そう",
+      "flag": "FLAG{geolocation_expert}"
+    },
+    {
+      "id": 19,
+      "name": "QR Code Puzzle",
+      "category": "misc",
+      "points": 100,
+      "difficulty": "easy",
+      "description": "このQRコードを読み取れ。",
+      "file": "misc/qr-code/puzzle.png",
+      "hint": "QRコードリーダーを使おう",
+      "flag": "FLAG{qr_code_scanner_ready}"
+    },
+    {
+      "id": 20,
+      "name": "Morse Code",
+      "category": "misc",
+      "points": 150,
+      "difficulty": "easy",
+      "description": ".... . .-.. .-.. ---を解読し、フラグ形式で提出せよ。",
+      "file": "misc/morse-code/message.txt",
+      "hint": "モールス信号デコーダーを使おう",
+      "flag": "FLAG{HELLO}"
+    }
+  ]
+}

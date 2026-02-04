@@ -1,0 +1,11 @@
+Decode this Morse code message:
+
+.... . .-.. .-.. ---
+
+Submit as FLAG{decoded_message}
+
+Hint: Use a Morse code translator or decode manually:
+. = dit (short)
+- = dah (long)
+Space between letters
+/ between words

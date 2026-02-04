@@ -85,8 +85,7 @@ claude --context ctf
 │    ↓                                                    │
 │  問題数は？                                              │
 │    ├── 1-3問 → 基本フロー（手動）                        │
-│    ├── 4問以上 → 並列フロー（/ctf-batch）                │
-│    └── 全自動したい → 完全自動化（/ctf-auto）            │
+│    └── 4問以上 → 自動化フロー（/ctf-auto）               │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -101,23 +100,19 @@ claude --context ctf      # 1. CTFモードで起動
 /ctf-flag FLAG{...}       # 6. フラグ記録
 ```
 
-### 並列フロー（複数問題を同時処理）
+### 自動化フロー（/ctf-auto）
 
 ```bash
-# 1. problems.json を作成
-# 2. 並列実行
-./scripts/ctf-parallel.sh problems.json 5
+/ctf-auto   # 対話形式で設定を入力
 ```
 
-### 完全自動化フロー（取得→解析→提出）
-
-```bash
-# 1. プラットフォーム設定
-cp templates/platform-ctfd.json .ctf/platform.json
-
-# 2. 完全自動実行
-/ctf-auto https://ctf.example.com --submit
-```
+対話で聞かれる項目:
+- URL（空欄でproblems.json使用）
+- ログイン情報（URL指定時）
+- カテゴリ絞り込み
+- 解きたい問題
+- 配点フィルタ
+- 自動提出するか
 
 ---
 
@@ -130,8 +125,7 @@ cp templates/platform-ctfd.json .ctf/platform.json
 | `/ctf-recon` | 初手偵察 | `/ctf-recon http://target.com` |
 | `/ctf-flag` | フラグ記録 | `/ctf-flag FLAG{example}` |
 | `/ctf-hint` | ヒント取得 | `/ctf-hint "PNG画像"` |
-| `/ctf-batch` | 並列実行 | `/ctf-batch problems.json` |
-| `/ctf-auto` | 完全自動化 | `/ctf-auto <URL> --submit` |
+| `/ctf-auto` | 対話式自動化 | `/ctf-auto` |
 
 ---
 
@@ -149,80 +143,47 @@ cp templates/platform-ctfd.json .ctf/platform.json
 
 ---
 
-## 完全自動化（25問自動取得＆自動回答）
+## 完全自動化（/ctf-auto）
+
+対話形式で設定を入力し、問題を自動解析します。
 
 ```
-┌──────────────────────────────────────────────────────┐
-│ 1. 問題自動取得 (Playwright MCP)                      │
-│    CTFプラットフォームにログイン→問題スクレイピング    │
-└──────────────────────────────────────────────────────┘
-                        ↓
-┌──────────────────────────────────────────────────────┐
-│ 2. 分類・優先順位付け                                 │
-│    カテゴリ判定 → 配点順ソート → 並列グループ分け      │
-└──────────────────────────────────────────────────────┘
-                        ↓
-┌──────────────────────────────────────────────────────┐
-│ 3. 10並列解析                                         │
-│    Web | Crypto | Forensics | Pwn | OSINT × 2        │
-│    各10分で自動スキップ                               │
-└──────────────────────────────────────────────────────┘
-                        ↓
-┌──────────────────────────────────────────────────────┐
-│ 4. フラグ自動提出                                     │
-│    Playwrightで入力→送信→結果確認                    │
-└──────────────────────────────────────────────────────┘
+/ctf-auto
+
+┌─────────────────────────────────────────────────────────┐
+│ CTF Auto Solver - 設定                                   │
+├─────────────────────────────────────────────────────────┤
+│ [1] URL: https://ctf.example.com                         │
+│ [2] ユーザー名: myteam                                    │
+│ [3] パスワード: ********                                  │
+│ [4] カテゴリ: web,crypto (空欄で全て)                    │
+│ [5] 問題: Login Bypass (空欄で全て)                      │
+│ [6] 配点: 100-300 (空欄で制限なし)                       │
+│ [7] 自動提出: y                                          │
+└─────────────────────────────────────────────────────────┘
+
+→ 問題取得 → フィルタ → 並列解析 → フラグ提出 → レポート
 ```
 
-### 使用法
+### 使用例
 
 ```bash
-# 1. プラットフォーム設定
-cp templates/platform-ctfd.json .ctf/platform.json
-# 認証情報を編集
+# 全自動
+/ctf-auto
+> URL: https://ctf.example.com
+> ユーザー名: myteam
+> パスワード: ****
+> カテゴリ: (空欄)
+> 自動提出: y
 
-# 2. 完全自動実行
-/ctf-auto https://ctf.example.com --submit
+# 特定カテゴリのみ
+/ctf-auto
+> URL: (空欄)
+> カテゴリ: web,crypto
+> 自動提出: n
 
-# 3. 結果確認
+# 結果確認
 cat .ctf/progress.json
-```
-
----
-
-## 並列実行（大量問題を高速処理）
-
-### 1. 問題ファイル作成
-
-```json
-{
-  "contest": "CTF大会名",
-  "problems": [
-    {"name": "Login Bypass", "category": "web", "points": 100},
-    {"name": "RSA Easy", "category": "crypto", "points": 100},
-    {"name": "Hidden Flag", "category": "forensics", "points": 150}
-  ]
-}
-```
-
-### 2. 並列実行
-
-```bash
-./scripts/ctf-parallel.sh problems.json 5
-tmux attach -t ctf-parallel
-```
-
-### 3. 手動並列（tmuxなし）
-
-```bash
-# ターミナル1: Web
-claude --context ctf -p "Web問題を解いて: Login Bypass, XSS, SSRF"
-
-# ターミナル2: Crypto
-claude --context ctf -p "Crypto問題を解いて: RSA Easy, XOR, AES"
-
-# ターミナル3: Forensics
-claude --context ctf -p "Forensics問題を解いて: Stego, PCAP, Memory"
 ```
 
 ---
@@ -275,10 +236,10 @@ claude --context ctf -p "Forensics問題を解いて: Stego, PCAP, Memory"
 
 ```markdown
 # 変更前
-- 1問10分で進展なければスキップ
-
-# 変更後（5分に短縮）
 - 1問5分で進展なければスキップ
+
+# 変更後（3分に短縮）
+- 1問3分で進展なければスキップ
 ```
 
 #### 新しいフラグ形式を追加したい
@@ -291,6 +252,37 @@ const FLAG_PATTERNS = [
   /MYCTF\{[^}]+\}/gi,  // 追加
 ];
 ```
+
+#### エージェントのモデルを変更したい
+
+`config/settings.json` を編集：
+
+```json
+{
+  "models": {
+    "default": "opus",
+    "agents": {
+      "ctf-orchestrator": "opus",
+      "ctf-web": "opus",
+      "ctf-crypto": "opus",
+      "ctf-forensics": "opus",
+      "ctf-pwn": "opus",
+      "ctf-osint": "sonnet",
+      "ctf-scraper": "sonnet"
+    }
+  }
+}
+```
+
+変更後、再インストール:
+
+```bash
+./install.sh
+```
+
+利用可能なモデル:
+- `opus` - 最高性能（複雑な推論、Exploit作成向け）
+- `sonnet` - 高速・低コスト（分類、偵察向け）
 
 #### 新しいコマンドを追加したい
 
@@ -314,6 +306,8 @@ description: 自作コマンドの説明
 ```
 ctf-claude-code/
 |-- install.sh           # 一括インストールスクリプト
+|-- config/              # 設定ファイル
+|   |-- settings.json    # モデル設定、タイムアウト等
 |-- contexts/            # セッションモード定義
 |   |-- ctf.md           # CTFモード（行動原則、禁止事項）
 |-- commands/            # スラッシュコマンド
@@ -330,7 +324,7 @@ ctf-claude-code/
 |   |-- ctf-knowledge/   # カテゴリ別解法パターン
 |   |-- ctf-learning/    # 継続学習・instincts
 |-- rules/               # 常時適用ルール
-|   |-- ctf.md           # 10分ルールなど
+|   |-- ctf.md           # 5分ルールなど
 |-- hooks/               # Hook設定
 |-- scripts/             # 自動化スクリプト
 |-- templates/           # ソルバーテンプレート

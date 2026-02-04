@@ -1,0 +1,12 @@
+RSA Beginner Challenge
+
+n = 3233
+e = 17
+c = 2201
+
+Decrypt the ciphertext c to find the flag.
+
+The flag format is FLAG{decrypted_value}
+
+Hint: n is small enough to factor by hand or with a simple program.
+n = p * q where p and q are prime numbers.

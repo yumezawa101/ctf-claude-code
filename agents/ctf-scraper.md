@@ -2,7 +2,7 @@
 name: ctf-scraper
 description: CTFプラットフォームから問題を自動取得するエージェント
 tools: ["Bash", "Read", "Write", "mcp__playwright__*"]
-model: sonnet
+model: opus
 ---
 
 # CTF Problem Scraper

@@ -1,12 +1,66 @@
-# /ctf-auto - 完全自動CTFソルバー
+# /ctf-auto - 対話式CTFソルバー
 
-問題取得から回答提出まで完全自動化。
+問題取得から回答提出まで、対話形式で設定して自動化。
 
 ## 使用法
 
 ```
-/ctf-auto <CTFプラットフォームURL> [--submit]
+/ctf-auto
 ```
+
+引数なしで起動すると、対話形式で設定を聞きます。
+
+## 対話フロー
+
+```
+/ctf-auto
+
+┌─────────────────────────────────────────────────────────┐
+│ CTF Auto Solver - 設定                                   │
+├─────────────────────────────────────────────────────────┤
+│                                                          │
+│ [1] プラットフォームURL                                   │
+│     > https://ctf.example.com                            │
+│     (空欄: problems.jsonを使用)                          │
+│                                                          │
+│ [2] ログイン情報（URLを入力した場合）                      │
+│     ユーザー名 > admin                                    │
+│     パスワード > ********                                 │
+│                                                          │
+│ [3] カテゴリ絞り込み                                      │
+│     > web,crypto                                          │
+│     (空欄: 全カテゴリ)                                    │
+│                                                          │
+│ [4] 解きたい問題                                          │
+│     > Login Bypass, RSA Easy                             │
+│     (空欄: 全問題)                                        │
+│                                                          │
+│ [5] 配点フィルタ                                          │
+│     最小 > 100                                            │
+│     最大 > 300                                            │
+│     (空欄: 制限なし)                                      │
+│                                                          │
+│ [6] フラグ自動提出                                        │
+│     > y                                                   │
+│     (y/N)                                                 │
+│                                                          │
+└─────────────────────────────────────────────────────────┘
+
+設定完了。実行を開始します...
+```
+
+## 設定項目
+
+| 項目 | 説明 | デフォルト |
+|------|------|-----------|
+| URL | CTFプラットフォームのURL | problems.json使用 |
+| ユーザー名 | ログイン用 | - |
+| パスワード | ログイン用 | - |
+| カテゴリ | web,crypto,forensics,pwn,osint | 全て |
+| 問題名 | カンマ区切りで指定 | 全て |
+| 最小配点 | この配点以上の問題のみ | 0 |
+| 最大配点 | この配点以下の問題のみ | ∞ |
+| 自動提出 | フラグを自動でsubmit | No |
 
 ## ディレクトリ構造
 
@@ -33,17 +87,14 @@
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│ 1. 問題自動取得 (Playwright MCP)                         │
-│    - ログイン                                            │
-│    - 問題一覧スクレイピング                               │
-│    - 問題詳細・添付ファイル取得                           │
+│ 1. 問題取得                                              │
+│    - URL指定時: Playwright MCPでスクレイピング           │
+│    - URL未指定: problems.json から読み込み               │
 └─────────────────────────────────────────────────────────┘
                           ↓
 ┌─────────────────────────────────────────────────────────┐
-│ 2. 分類・優先順位付け (ctf-orchestrator)                 │
-│    - カテゴリ判定 (Web/Crypto/Forensics/Pwn/OSINT)       │
-│    - 配点順ソート (低→高)                                │
-│    - 並列グループ分け                                    │
+│ 2. フィルタリング                                        │
+│    - カテゴリ / 問題名 / 配点 で絞り込み                 │
 └─────────────────────────────────────────────────────────┘
                           ↓
 ┌─────────────────────────────────────────────────────────┐
@@ -57,16 +108,13 @@
 └─────────────────────────────────────────────────────────┘
                           ↓
 ┌─────────────────────────────────────────────────────────┐
-│ 4. フラグ検証・自動提出 (--submit時)                     │
-│    - フラグ形式チェック                                  │
+│ 4. フラグ提出（自動提出=yの場合）                        │
 │    - Playwrightで自動入力・送信                          │
-│    - 結果確認・記録                                      │
 └─────────────────────────────────────────────────────────┘
                           ↓
 ┌─────────────────────────────────────────────────────────┐
 │ 5. 結果レポート                                          │
-│    - 解決問題一覧                                        │
-│    - 未解決問題と理由                                    │
+│    - 解決/未解決/スキップ一覧                            │
 │    - 獲得ポイント                                        │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -80,43 +128,53 @@
 | picoCTF        | ✓       | ✓       |
 | カスタム        | 要設定   | 要設定   |
 
-## 設定ファイル
+## problems.json の形式
 
-`ctf_solutions/platform.json`:
+URLを使わない場合、`ctf_workspace/problems.json` を作成：
 
 ```json
 {
-  "type": "ctfd",
-  "url": "https://ctf.example.com",
-  "credentials": {
-    "username": "YOUR_USERNAME",
-    "password": "YOUR_PASSWORD"
-  },
-  "selectors": {
-    "problemList": ".challenge-button",
-    "problemTitle": ".challenge-name",
-    "problemCategory": ".challenge-category",
-    "problemPoints": ".challenge-points",
-    "problemDescription": ".challenge-description",
-    "flagInput": "#flag-input",
-    "submitButton": "#flag-submit"
-  },
-  "flagFormat": "FLAG{.*}"
+  "contest": "CTF大会名",
+  "problems": [
+    {"name": "Login Bypass", "category": "web", "points": 100, "url": "http://..."},
+    {"name": "RSA Easy", "category": "crypto", "points": 100, "file": "rsa.txt"},
+    {"name": "Hidden Flag", "category": "forensics", "points": 150, "file": "image.png"}
+  ]
 }
 ```
 
-## 実行例
+## 使用例
 
-```bash
-# 問題取得のみ（解析・提出なし）
-/ctf-auto https://ctf.example.com --fetch-only
+### 全自動（URL指定）
 
-# 解析まで（提出なし）
-/ctf-auto https://ctf.example.com
+```
+/ctf-auto
+> URL: https://ctf.example.com
+> ユーザー名: myteam
+> パスワード: ****
+> カテゴリ: (空欄)
+> 問題: (空欄)
+> 最小配点: (空欄)
+> 最大配点: (空欄)
+> 自動提出: y
+```
 
-# 完全自動（提出含む）
-/ctf-auto https://ctf.example.com --submit
+### 特定カテゴリのみ
 
-# 特定カテゴリのみ
-/ctf-auto https://ctf.example.com --category web,crypto
+```
+/ctf-auto
+> URL: (空欄)
+> カテゴリ: web,crypto
+> 問題: (空欄)
+> 自動提出: n
+```
+
+### 特定の問題だけ
+
+```
+/ctf-auto
+> URL: (空欄)
+> カテゴリ: (空欄)
+> 問題: Login Bypass, Hidden Flag
+> 自動提出: n
 ```
