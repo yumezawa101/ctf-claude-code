@@ -72,10 +72,10 @@ claude --context ctf -p "Forensics問題を解いて: Hidden Flag, Memory Dump, 
 
 ```bash
 # 進捗確認
-cat .ctf/progress.json | jq '.problems[] | select(.status == "solved")'
+cat ctf_solutions/progress.json | jq '.problems[] | select(.status == "solved")'
 
 # フラグ一覧
-grep -r "FLAG{" .ctf/
+grep -r "FLAG{" ctf_solutions/
 ```
 
 ## 推奨設定

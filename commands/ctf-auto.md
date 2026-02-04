@@ -60,7 +60,7 @@
 
 ## 設定ファイル
 
-`.ctf/platform.json`:
+`ctf_solutions/platform.json`:
 
 ```json
 {
