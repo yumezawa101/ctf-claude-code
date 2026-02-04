@@ -66,7 +66,7 @@ export interface MarketData {
 }
 
 export function calculateLiquidityScore(market: MarketData): number {
-  // TODO: 実装
+  // TODO: 流動性スコア計算ロジックを実装する（ステップ4で実装）
   throw new Error('Not implemented')
 }
 ```
