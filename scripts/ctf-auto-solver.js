@@ -219,7 +219,7 @@ async function solveParallel(classified, parallelCount) {
       const agent = CATEGORY_AGENTS[category] || 'ctf-orchestrator';
       const problemNames = problems.map(p => p.name).join(', ');
 
-      const cmd = `claude --context ctf -p "以下の${category}問題を順番に解いて。3分で進展なければスキップ。フラグが見つかったら /ctf-flag で記録: ${problemNames}"`;
+      const cmd = `claude --context ctf -p "以下の${category}問題を順番に解いて。10分で進展なければスキップ。フラグが見つかったら /ctf-flag で記録: ${problemNames}"`;
 
       if (windowIndex === 0) {
         execSync(`tmux send-keys -t ${sessionName}:main '${cmd}' Enter`);
