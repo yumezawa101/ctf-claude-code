@@ -45,7 +45,7 @@ xxd [filename] | head -50
 
 ## 使用方法
 ```
-/ctf-recon https://target.ctf/challenge
+/ctf-recon https://targetctf_solutions/challenge
 /ctf-recon ./challenge.png
 ```
 

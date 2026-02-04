@@ -32,3 +32,34 @@ model: opus
 - 開始時刻・経過時間
 - 担当エージェント
 - Flag（取得済みの場合）
+
+## 完了後処理
+全問題の解析完了後、以下を実行:
+
+1. **解決済み問題の確認**
+   - `ctf_workspace/progress.json`から解決済み問題を集計
+   - 各問題の使用コマンド・解法を確認
+
+2. **Writeup生成**
+   - `ctf-writeup`エージェントを起動
+   - 解決済み問題のWriteupを`ctf_workspace/solutions/[category]/[problem]/writeup.md`に生成
+   - 既存のWriteupは上書きしない
+
+3. **結果レポート出力**
+   ```
+   📊 CTF Session Summary
+   ─────────────────────
+   解決: X/Y問 (XX%)
+   合計時間: XX分
+
+   カテゴリ別:
+   - Web: X問
+   - Crypto: X問
+   ...
+
+   📝 Writeup: X件生成
+   ```
+
+4. **学習データ更新**
+   - 解法パターンを`skills/ctf-learning/instincts.json`に追加
+   - カテゴリ別の成功パターンを記録

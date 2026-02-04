@@ -4,6 +4,24 @@
 **Kali Linux** を使用。主要ツールは標準インストール済み。
 ワードリスト: `/usr/share/wordlists/` (rockyou.txt, seclists等)
 
+## ディレクトリ構造
+
+```
+./ctf_workspace/              # 作業ディレクトリ
+├── config.json               # プラットフォーム設定
+├── problems.json             # 問題データ
+├── progress.json             # 進捗管理
+├── solutions/                # カテゴリ別 > 問題別
+│   ├── web/
+│   │   └── problem_name/     # 問題ごとにディレクトリ
+│   ├── crypto/
+│   ├── forensics/
+│   ├── pwn/
+│   └── osint/
+├── files/                    # 添付ファイル
+└── screenshots/              # スクリーンショット
+```
+
 ## 速度優先
 - 簡単な問題（低配点）から着手する
 - 1問5分で進展なければスキップまたはエスカレート
@@ -60,6 +78,6 @@
 - 他チームへの妨害行為禁止
 
 ## 進捗管理
-- `.ctf/progress.json` で全問題を追跡
+- `ctf_workspace/progress.json` で全問題を追跡
 - 状態: 🔴未着手 / 🟡進行中 / 🟢完了 / ⏭️スキップ
 - 解法は `skills/ctf-learning/patterns/` に蓄積
