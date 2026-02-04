@@ -253,6 +253,37 @@ const FLAG_PATTERNS = [
 ];
 ```
 
+#### エージェントのモデルを変更したい
+
+`config/settings.json` を編集：
+
+```json
+{
+  "models": {
+    "default": "opus",
+    "agents": {
+      "ctf-orchestrator": "opus",
+      "ctf-web": "opus",
+      "ctf-crypto": "opus",
+      "ctf-forensics": "opus",
+      "ctf-pwn": "opus",
+      "ctf-osint": "sonnet",
+      "ctf-scraper": "sonnet"
+    }
+  }
+}
+```
+
+変更後、再インストール:
+
+```bash
+./install.sh
+```
+
+利用可能なモデル:
+- `opus` - 最高性能（複雑な推論、Exploit作成向け）
+- `sonnet` - 高速・低コスト（分類、偵察向け）
+
 #### 新しいコマンドを追加したい
 
 `commands/ctf-mycommand.md` を作成：
@@ -275,6 +306,8 @@ description: 自作コマンドの説明
 ```
 ctf-claude-code/
 |-- install.sh           # 一括インストールスクリプト
+|-- config/              # 設定ファイル
+|   |-- settings.json    # モデル設定、タイムアウト等
 |-- contexts/            # セッションモード定義
 |   |-- ctf.md           # CTFモード（行動原則、禁止事項）
 |-- commands/            # スラッシュコマンド

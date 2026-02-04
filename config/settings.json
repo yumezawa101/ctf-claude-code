@@ -1,0 +1,35 @@
+{
+  "models": {
+    "_comment": "エージェント/タスク別のモデル設定。opus=最高性能, sonnet=高速・低コスト",
+
+    "default": "opus",
+
+    "agents": {
+      "ctf-orchestrator": "opus",
+      "ctf-web": "opus",
+      "ctf-crypto": "opus",
+      "ctf-forensics": "opus",
+      "ctf-pwn": "opus",
+      "ctf-osint": "opus",
+      "ctf-scraper": "opus"
+    },
+
+    "tasks": {
+      "_comment": "特定タスク向けのモデル推奨（参考用）",
+      "classification": "sonnet",
+      "complex_reasoning": "opus",
+      "exploit_creation": "opus",
+      "code_generation": "opus"
+    }
+  },
+
+  "timeouts": {
+    "per_problem_seconds": 300,
+    "_comment": "5分ルール: 進展なしでスキップ"
+  },
+
+  "parallel": {
+    "max_agents": 10,
+    "_comment": "同時実行エージェント数"
+  }
+}
