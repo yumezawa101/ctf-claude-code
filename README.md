@@ -116,11 +116,246 @@ claude --context ctf      # 1. CTFモードで起動
 
 ---
 
-## コマンド一覧
+## コマンド詳細
+
+### `/ctf-start` - セッション開始
+
+CTFセッションを開始し、進捗管理ファイルを初期化します。
+
+```bash
+/ctf-start [コンテスト名]
+```
+
+**実行内容:**
+1. `.ctf/progress.json` を作成
+2. 問題一覧を取得・分類
+3. 優先順位を決定（低配点→高配点）
+
+**生成ファイル:**
+```json
+// .ctf/progress.json
+{
+  "contest": "コンテスト名",
+  "started_at": "2025-01-01T00:00:00Z",
+  "problems": [
+    {
+      "name": "問題名",
+      "category": "Web",
+      "points": 100,
+      "status": "pending",
+      "flag": null
+    }
+  ]
+}
+```
+
+---
+
+### `/ctf-solve` - 問題解決
+
+指定した問題をカテゴリに応じた専門エージェントで解きます。
+
+```bash
+/ctf-solve [問題名 or ID]
+/ctf-solve "Login Bypass"
+/ctf-solve 3
+```
+
+**実行内容:**
+1. 問題のカテゴリを判定
+2. 専門エージェントを起動
+3. 5分ルール: 進展なければスキップ提案
+4. フラグ取得時は `progress.json` を更新
+
+**エージェント振り分け:**
+
+| カテゴリ | エージェント |
+|----------|-------------|
+| Web | ctf-web |
+| Crypto | ctf-crypto |
+| Forensics | ctf-forensics |
+| Pwn | ctf-pwn |
+| OSINT | ctf-osint |
+| Misc | ctf-orchestrator |
+
+---
+
+### `/ctf-recon` - 初期偵察
+
+URLまたはファイルに対して初手偵察を自動実行します。
+
+```bash
+/ctf-recon <URL or ファイルパス>
+/ctf-recon https://target.ctf/challenge
+/ctf-recon ./challenge.png
+```
+
+**URL指定時の実行内容:**
+```bash
+curl -v [URL]                    # 基本情報
+curl -s [URL]/robots.txt         # 隠しファイル
+curl -s [URL]/.git/HEAD          # Git漏洩チェック
+curl -I [URL]                    # ヘッダー確認
+```
+
+**ファイル指定時の実行内容:**
+```bash
+file [filename]                  # ファイル種別
+strings [filename] | grep -i flag  # 文字列検索
+exiftool [filename]              # メタデータ
+binwalk -e [filename]            # 埋め込みファイル
+```
+
+**出力:**
+- 発見した情報のサマリー
+- 推奨する攻撃ベクトル
+- 次のステップ提案
+
+---
+
+### `/ctf-flag` - フラグ記録
+
+フラグを検証し、進捗ファイルに記録します。
+
+```bash
+/ctf-flag FLAG{example_flag}
+/ctf-flag [問題名] FLAG{...}
+```
+
+**実行内容:**
+1. フラグ形式を検証
+2. `progress.json` を更新
+3. 解法パターンを学習データに追記
+
+**対応フラグ形式:**
+```
+FLAG{...}
+flag{...}
+ctf{...}
+SECCON{...}
+picoCTF{...}
+[大会名]{...}
+```
+
+**記録内容:**
+```json
+{
+  "flag": "FLAG{...}",
+  "solved_at": "2025-01-01T00:05:00Z",
+  "method": "SQLi in login form",
+  "tools_used": ["sqlmap", "curl"]
+}
+```
+
+---
+
+### `/ctf-hint` - ヒント取得
+
+問題の特徴からマッチするヒントを学習データベースから検索します。
+
+```bash
+/ctf-hint <問題の特徴>
+/ctf-hint --category <カテゴリ>
+/ctf-hint --list
+```
+
+**使用例:**
+```bash
+/ctf-hint "ログインフォームがある"
+# → SQLi基本ペイロード（' OR 1=1--）を試す
+
+/ctf-hint "PNG画像"
+# → zsteg → exiftool → binwalk の順で実行
+
+/ctf-hint "n, e, c パラメータ"
+# → RSA問題。nをfactordbで素因数分解
+
+/ctf-hint --category crypto
+# → 暗号カテゴリのヒント一覧
+```
+
+**クイックリファレンス:**
+
+| 特徴 | ヒント |
+|------|--------|
+| Base64文字列 | Base64デコードを試す |
+| PNG画像 | `zsteg` → `exiftool` → `binwalk` |
+| JPG画像 | `steghide`（パスワード空）→ `exiftool` |
+| ログインフォーム | SQLi基本ペイロード |
+| n, e, c パラメータ | RSA、factordbで素因数分解 |
+| pcapファイル | `tshark`/`wireshark`でHTTP確認 |
+| ELFバイナリ | `checksec` → `file` → `strings` |
+
+**オンラインリソース:**
+- CyberChef: https://gchq.github.io/CyberChef/
+- FactorDB: http://factordb.com/
+- CrackStation: https://crackstation.net/
+- HackTricks: https://book.hacktricks.xyz/
+
+---
+
+### `/ctf-auto` - 対話式自動化
+
+対話形式で設定を入力し、問題を自動解析します。
+
+```bash
+/ctf-auto
+```
+
+**対話フロー:**
+```
+┌─────────────────────────────────────────────────────────┐
+│ CTF Auto Solver - 設定                                   │
+├─────────────────────────────────────────────────────────┤
+│ [1] URL: (空欄でproblems.json使用)                       │
+│ [2] ユーザー名: (URL指定時のみ)                          │
+│ [3] パスワード: (URL指定時のみ)                          │
+│ [4] カテゴリ: web,crypto (空欄で全て)                    │
+│ [5] 問題: Login Bypass (空欄で全て)                      │
+│ [6] 配点: 最小100, 最大300 (空欄で制限なし)              │
+│ [7] 自動提出: y/N                                        │
+└─────────────────────────────────────────────────────────┘
+```
+
+**設定項目:**
+
+| 項目 | 説明 | デフォルト |
+|------|------|-----------|
+| URL | CTFプラットフォームURL | problems.json使用 |
+| ユーザー名 | ログイン用 | - |
+| パスワード | ログイン用 | - |
+| カテゴリ | カンマ区切りで絞り込み | 全て |
+| 問題名 | カンマ区切りで指定 | 全て |
+| 配点フィルタ | 最小/最大 | 0〜∞ |
+| 自動提出 | フラグを自動submit | No |
+
+**使用例:**
+```bash
+# 全自動（URL指定）
+/ctf-auto
+> URL: https://ctf.example.com
+> ユーザー名: myteam
+> パスワード: ****
+> カテゴリ: (空欄)
+> 自動提出: y
+
+# 特定カテゴリのみ
+/ctf-auto
+> URL: (空欄)
+> カテゴリ: web,crypto
+> 自動提出: n
+
+# 結果確認
+cat .ctf/progress.json
+```
+
+---
+
+## コマンド一覧（クイックリファレンス）
 
 | コマンド | 機能 | 使用例 |
 |----------|------|--------|
-| `/ctf-start` | セッション開始 | `/ctf-start` |
+| `/ctf-start` | セッション開始 | `/ctf-start "SECCON 2025"` |
 | `/ctf-solve` | 問題解析 | `/ctf-solve "Login Bypass"` |
 | `/ctf-recon` | 初手偵察 | `/ctf-recon http://target.com` |
 | `/ctf-flag` | フラグ記録 | `/ctf-flag FLAG{example}` |
@@ -140,51 +375,6 @@ claude --context ctf      # 1. CTFモードで起動
 | ctf-pwn | バイナリ解析 | BOF, ROP, Format String |
 | ctf-osint | 公開情報調査 | 画像調査, Google Dorking |
 | ctf-scraper | プラットフォーム操作 | CTFd, rCTF |
-
----
-
-## 完全自動化（/ctf-auto）
-
-対話形式で設定を入力し、問題を自動解析します。
-
-```
-/ctf-auto
-
-┌─────────────────────────────────────────────────────────┐
-│ CTF Auto Solver - 設定                                   │
-├─────────────────────────────────────────────────────────┤
-│ [1] URL: https://ctf.example.com                         │
-│ [2] ユーザー名: myteam                                    │
-│ [3] パスワード: ********                                  │
-│ [4] カテゴリ: web,crypto (空欄で全て)                    │
-│ [5] 問題: Login Bypass (空欄で全て)                      │
-│ [6] 配点: 100-300 (空欄で制限なし)                       │
-│ [7] 自動提出: y                                          │
-└─────────────────────────────────────────────────────────┘
-
-→ 問題取得 → フィルタ → 並列解析 → フラグ提出 → レポート
-```
-
-### 使用例
-
-```bash
-# 全自動
-/ctf-auto
-> URL: https://ctf.example.com
-> ユーザー名: myteam
-> パスワード: ****
-> カテゴリ: (空欄)
-> 自動提出: y
-
-# 特定カテゴリのみ
-/ctf-auto
-> URL: (空欄)
-> カテゴリ: web,crypto
-> 自動提出: n
-
-# 結果確認
-cat .ctf/progress.json
-```
 
 ---
 
