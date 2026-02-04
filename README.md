@@ -239,18 +239,45 @@ claude --context ctf -p "Forensics問題を解いて: Stego, PCAP, Memory"
 
 ---
 
-## ディレクトリ構成
+## ディレクトリ構成と役割
+
+### 各ディレクトリの役割
+
+| ディレクトリ | 役割 | いつ使われるか |
+|-------------|------|---------------|
+| **contexts/** | セッションの振る舞いを定義 | `--context ctf` で起動時に適用 |
+| **commands/** | スラッシュコマンドの処理手順 | `/ctf-solve` など呼び出し時 |
+| **agents/** | 専門エージェントの定義 | Claudeがサブタスクを委譲する時 |
+| **skills/** | 知識ベース・パターン集 | Claudeが参照情報として読む |
+| **rules/** | 常に従うべきルール | 全セッションで常時適用 |
+| **hooks/** | ツール実行時の自動処理 | Bash実行後、セッション終了時など |
+| **templates/** | コードテンプレート | 問題解析時にコピーして使用 |
+| **scripts/** | 自動化スクリプト | 並列実行、自動解析など |
+| **mcp-configs/** | MCP（外部ツール）設定 | ブラウザ自動化など |
+| **.ctf/** | 進捗管理データ | セッション中に読み書き |
+
+### ファイル構成
 
 ```
 ctf-claude-code/
 |-- install.sh           # 一括インストールスクリプト
-|-- agents/              # CTF専門エージェント
+|-- contexts/            # セッションモード定義
+|   |-- ctf.md           # CTFモード（行動原則、禁止事項）
 |-- commands/            # スラッシュコマンド
+|   |-- ctf-start.md     # /ctf-start
+|   |-- ctf-solve.md     # /ctf-solve
+|   |-- ctf-hint.md      # /ctf-hint
+|   |-- ...
+|-- agents/              # 専門エージェント
+|   |-- ctf-orchestrator.md  # 問題振り分け
+|   |-- ctf-web.md       # Web問題
+|   |-- ctf-crypto.md    # 暗号問題
+|   |-- ...
 |-- skills/              # 知識・学習データ
 |   |-- ctf-knowledge/   # カテゴリ別解法パターン
 |   |-- ctf-learning/    # 継続学習・instincts
-|-- rules/               # CTFルール
-|-- contexts/            # CTFモード設定
+|-- rules/               # 常時適用ルール
+|   |-- ctf.md           # 10分ルールなど
 |-- hooks/               # Hook設定
 |-- scripts/             # 自動化スクリプト
 |-- templates/           # ソルバーテンプレート
