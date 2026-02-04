@@ -20,9 +20,13 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/ctf-session-save.js\""
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/ctf-learning-sync.js\""
           }
         ],
-        "description": "CTF: セッション終了時に解法パターンを抽出・保存"
+        "description": "CTF: セッション終了時に解法パターンを抽出・保存し、学習データを同期"
       }
     ]
   }

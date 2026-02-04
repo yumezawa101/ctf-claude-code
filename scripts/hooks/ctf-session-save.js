@@ -5,7 +5,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const CTF_DIR = path.join(process.cwd(), '.ctf');
+const CTF_DIR = path.join(process.cwd(), 'ctf_workspace');
 const PROGRESS_FILE = path.join(CTF_DIR, 'progress.json');
 const INSTINCTS_FILE = path.join(process.cwd(), 'skills', 'ctf-learning', 'instincts.json');
 const SESSION_LOG = path.join(CTF_DIR, 'session-log.json');
@@ -61,6 +61,37 @@ function processSession() {
   const unsolved = progress.problems.filter(p => p.status !== 'solved');
   if (unsolved.length > 0) {
     console.error(`\n⏸️  未解決: ${unsolved.map(p => p.name).join(', ')}`);
+  }
+
+  // Writeup未生成の問題をチェック
+  checkMissingWriteups(solved);
+}
+
+/**
+ * Writeup未生成の問題をチェックして通知
+ */
+function checkMissingWriteups(solved) {
+  if (solved.length === 0) return;
+
+  const missingWriteups = solved.filter(p => {
+    const problemSlug = (p.name || 'unknown').toLowerCase().replace(/\s+/g, '-');
+    const category = (p.category || 'misc').toLowerCase();
+    const writeupPath = path.join(
+      CTF_DIR,
+      'solutions',
+      category,
+      problemSlug,
+      'writeup.md'
+    );
+    return !fs.existsSync(writeupPath);
+  });
+
+  if (missingWriteups.length > 0) {
+    console.error(`\n📝 Writeup未生成: ${missingWriteups.length}問`);
+    missingWriteups.forEach(p => {
+      console.error(`   - ${p.name} (${p.category || 'misc'})`);
+    });
+    console.error('   → ctf-writeup エージェントで生成できます');
   }
 }
 
