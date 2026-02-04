@@ -52,6 +52,7 @@ ctf-claude-code/
 |   |-- ctf-solve.md         # /ctf-solve - 問題解析
 |   |-- ctf-recon.md         # /ctf-recon - 初手偵察
 |   |-- ctf-flag.md          # /ctf-flag - フラグ記録
+|   |-- ctf-hint.md          # /ctf-hint - ヒント取得
 |   |-- ctf-batch.md         # /ctf-batch - 並列バッチ実行
 |   |-- ctf-auto.md          # /ctf-auto - 完全自動化
 |
@@ -115,6 +116,7 @@ ctf-claude-code/
 | `/ctf-solve` | 専門エージェントで問題解析 |
 | `/ctf-recon` | 初手偵察を自動実行 |
 | `/ctf-flag` | フラグ検証・記録 |
+| `/ctf-hint` | 学習データからヒントを取得 |
 | `/ctf-batch` | 並列バッチ実行セットアップ |
 | `/ctf-auto` | 完全自動（取得→解析→提出） |
 
