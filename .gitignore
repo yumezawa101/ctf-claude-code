@@ -27,3 +27,7 @@ private/
 
 # Session templates (not committed)
 examples/sessions/*.tmp
+
+# CTF progress data (generated at runtime)
+.ctf/progress.json
+.ctf/command-log.json
