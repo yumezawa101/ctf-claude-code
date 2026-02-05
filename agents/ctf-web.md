@@ -55,3 +55,29 @@ jwt_tool [token] -T              # 改ざんテスト
 
 ## フラグ発見時
 即座にオーケストレーターに報告。フラグ形式を検証してから提出。
+
+## フラグ取得後のWriteup生成
+
+フラグを取得したら、以下の情報を整理して `ctf-writeup-generator` を呼び出す：
+
+```json
+{
+  "problem_name": "[問題名]",
+  "category": "web",
+  "points": [配点],
+  "description": "[問題文]",
+  "flag": "[取得したフラグ]",
+  "solve_context": {
+    "steps": [
+      "1. [初期偵察で発見したこと]",
+      "2. [特定した脆弱性]",
+      "3. [攻撃手順とペイロード]"
+    ],
+    "tools_used": ["curl", "sqlmap", "etc"],
+    "key_insight": "[攻撃成功の決め手]",
+    "code_snippets": "[使用したペイロード/スクリプト]"
+  }
+}
+```
+
+**重要**: 脆弱性の原因と防御策も含めてWritupに反映する。

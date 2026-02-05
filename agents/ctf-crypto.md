@@ -43,3 +43,29 @@ def xor_decrypt(data, key):
 - CyberChef: https://gchq.github.io/CyberChef/
 - FactorDB: http://factordb.com/
 - RsaCtfTool: https://github.com/RsaCtfTool/RsaCtfTool
+
+## フラグ取得後のWriteup生成
+
+フラグを取得したら、以下の情報を整理して `ctf-writeup-generator` を呼び出す：
+
+```json
+{
+  "problem_name": "[問題名]",
+  "category": "crypto",
+  "points": [配点],
+  "description": "[問題文]",
+  "flag": "[取得したフラグ]",
+  "solve_context": {
+    "steps": [
+      "1. [最初に行った分析]",
+      "2. [発見した弱点]",
+      "3. [実行した攻撃]"
+    ],
+    "tools_used": ["CyberChef", "Python", "etc"],
+    "key_insight": "[解決の鍵となった発見]",
+    "code_snippets": "[使用したコード]"
+  }
+}
+```
+
+**重要**: 解法の手順と発見を詳細に記録し、Writeup品質を高める。

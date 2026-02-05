@@ -43,3 +43,29 @@ host [domain]
 ## Webアーカイブ
 - Wayback Machine: https://web.archive.org/
 - 削除されたページの復元に有効
+
+## フラグ取得後のWriteup生成
+
+フラグを取得したら、以下の情報を整理して `ctf-writeup-generator` を呼び出す：
+
+```json
+{
+  "problem_name": "[問題名]",
+  "category": "osint",
+  "points": [配点],
+  "description": "[問題文]",
+  "flag": "[取得したフラグ]",
+  "solve_context": {
+    "steps": [
+      "1. [初期情報の整理]",
+      "2. [調査手順と発見]",
+      "3. [最終的な特定方法]"
+    ],
+    "tools_used": ["Google", "sherlock", "exiftool", "etc"],
+    "key_insight": "[情報特定の決め手]",
+    "code_snippets": "[使用した検索クエリ/コマンド]"
+  }
+}
+```
+
+**重要**: 調査の論理的な流れと情報源を詳細に記録する。

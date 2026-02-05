@@ -100,7 +100,7 @@
       "description": "小さすぎるRSA鍵を破れ。",
       "file": "crypto/rsa-beginner/",
       "hint": "nが小さければ素因数分解できる",
-      "flag": "FLAG{small_rsa_is_weak}"
+      "flag": "FLAG{2825}"
     },
     {
       "id": 10,
