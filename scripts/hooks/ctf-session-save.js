@@ -5,7 +5,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const CTF_DIR = path.join(process.cwd(), '.ctf');
+const CTF_DIR = path.join(process.cwd(), 'ctf_workspace');
 const PROGRESS_FILE = path.join(CTF_DIR, 'progress.json');
 const INSTINCTS_FILE = path.join(process.cwd(), 'skills', 'ctf-learning', 'instincts.json');
 const SESSION_LOG = path.join(CTF_DIR, 'session-log.json');
@@ -17,26 +17,39 @@ process.stdin.on('data', chunk => {
 });
 
 process.stdin.on('end', () => {
+  let summary = { solved: 0, pending: 0, missingWriteups: 0 };
+
   try {
-    processSession();
+    summary = processSession();
   } catch (e) {
     // エラーは無視
   }
 
-  // 入力をそのまま出力（パススルー）
-  console.log(input);
+  // サマリーのみ出力（パススルーせず、コンテキスト節約）
+  if (summary.solved > 0 || summary.pending > 0) {
+    console.log(JSON.stringify(summary));
+  }
 });
 
+/**
+ * セッションを処理し、サマリーを返す
+ * @returns {{solved: number, pending: number, missingWriteups: number}}
+ */
 function processSession() {
-  if (!fs.existsSync(PROGRESS_FILE)) return;
+  const summary = { solved: 0, pending: 0, missingWriteups: 0 };
+
+  if (!fs.existsSync(PROGRESS_FILE)) return summary;
 
   const progress = JSON.parse(fs.readFileSync(PROGRESS_FILE, 'utf8'));
-  const solved = progress.problems.filter(p => p.status === 'solved');
-  const total = progress.problems.length;
+  const solved = progress.problems?.filter(p => p.status === 'solved') || [];
+  const total = progress.problems?.length || 0;
 
-  if (total === 0) return;
+  if (total === 0) return summary;
 
-  // 統計表示
+  summary.solved = solved.length;
+  summary.pending = total - solved.length;
+
+  // 統計表示（stderrに出力、コンテキストに影響しない）
   console.error(`\n📊 [CTF Session] ${solved.length}/${total} 問完了`);
 
   // 解答時間の計算
@@ -57,11 +70,46 @@ function processSession() {
     learnFromSolved(solved, progress);
   }
 
-  // 未解決問題の一覧
+  // 未解決問題の一覧（短縮表示）
   const unsolved = progress.problems.filter(p => p.status !== 'solved');
-  if (unsolved.length > 0) {
+  if (unsolved.length > 0 && unsolved.length <= 5) {
     console.error(`\n⏸️  未解決: ${unsolved.map(p => p.name).join(', ')}`);
+  } else if (unsolved.length > 5) {
+    console.error(`\n⏸️  未解決: ${unsolved.length}問`);
   }
+
+  // Writeup未生成の問題をチェック
+  summary.missingWriteups = checkMissingWriteups(solved);
+
+  return summary;
+}
+
+/**
+ * Writeup未生成の問題をチェックして通知
+ * @returns {number} 未生成のWriteup数
+ */
+function checkMissingWriteups(solved) {
+  if (solved.length === 0) return 0;
+
+  const missingWriteups = solved.filter(p => {
+    const problemSlug = (p.name || 'unknown').toLowerCase().replace(/\s+/g, '-');
+    const category = (p.category || 'misc').toLowerCase();
+    const writeupPath = path.join(
+      CTF_DIR,
+      'solutions',
+      category,
+      problemSlug,
+      'writeup.md'
+    );
+    return !fs.existsSync(writeupPath);
+  });
+
+  if (missingWriteups.length > 0) {
+    // 簡潔な通知のみ（詳細リストは省略してコンテキスト節約）
+    console.error(`\n📝 Writeup未生成: ${missingWriteups.length}問 → ctf-writeup で生成可`);
+  }
+
+  return missingWriteups.length;
 }
 
 /**

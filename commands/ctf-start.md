@@ -12,7 +12,7 @@ description: CTFセッションを開始し、問題一覧を取得・分類す�
 4. 優先順位を決定（低配点→高配点）
 5. 進捗トラッキングファイルを作成
 
-## 進捗ファイル: `.ctf/progress.json`
+## 進捗ファイル: `ctf_solutions/progress.json`
 ```json
 {
   "contest": "コンテスト名",
@@ -42,5 +42,5 @@ description: CTFセッションを開始し、問題一覧を取得・分類す�
 ## 初期化コマンド
 ```bash
 mkdir -p .ctf
-echo '{"contest":"","started_at":"","problems":[]}' > .ctf/progress.json
+echo '{"contest":"","started_at":"","problems":[]}' > ctf_solutions/progress.json
 ```

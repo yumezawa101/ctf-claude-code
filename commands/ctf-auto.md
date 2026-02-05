@@ -62,6 +62,27 @@
 | 最大配点 | この配点以下の問題のみ | ∞ |
 | 自動提出 | フラグを自動でsubmit | No |
 
+## ディレクトリ構造
+
+```
+./ctf_workspace/              # 作業ディレクトリ
+├── config.json               # プラットフォーム設定
+├── problems.json             # 問題データ
+├── progress.json             # 進捗管理
+├── solutions/                # カテゴリ別 > 問題別
+│   ├── web/
+│   │   ├── msfroggenerator/  # 問題ごとにディレクトリ
+│   │   └── secure-email/
+│   ├── crypto/
+│   │   └── chacha-slide/
+│   ├── forensics/
+│   │   └── unforgotten-bits/
+│   ├── pwn/
+│   └── osint/
+├── files/                    # 添付ファイル
+└── screenshots/              # スクリーンショット
+```
+
 ## 実行フロー
 
 ```
@@ -154,7 +175,7 @@
 
 ## problems.json の形式
 
-URLを使わない場合、`problems.json` を作成：
+URLを使わない場合、`ctf_workspace/problems.json` を作成：
 
 ```json
 {

@@ -30,7 +30,14 @@
   },
 
   "parallel": {
-    "max_agents": 10,
-    "_comment": "同時実行エージェント数"
+    "max_agents": 3,
+    "_comment": "同時実行エージェント数（10 → 3に削減でコンテキスト最適化）"
+  },
+
+  "context_optimization": {
+    "_comment": "コンテキスト使用量削減のための設定",
+    "max_command_history": 20,
+    "output_truncate_length": 200,
+    "disable_pattern_file_append": true
   }
 }

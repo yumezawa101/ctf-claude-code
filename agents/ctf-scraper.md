@@ -80,14 +80,14 @@ Playwright MCP を使用:
 
 ```bash
 # 添付ファイルをダウンロード
-mkdir -p .ctf/files/{problem_name}
-wget -P .ctf/files/{problem_name}/ {file_url}
+mkdir -p ctf_solutions/files/{problem_name}
+wget -P ctf_solutions/files/{problem_name}/ {file_url}
 ```
 
 ### 5. 結果保存
 
 ```json
-// .ctf/problems.json
+// ctf_solutions/problems.json
 {
   "platform": "ctfd",
   "url": "https://ctf.example.com",
@@ -99,7 +99,7 @@ wget -P .ctf/files/{problem_name}/ {file_url}
       "category": "web",
       "points": 100,
       "description": "SQLインジェクションでログインをバイパスせよ",
-      "files": [".ctf/files/login-bypass/app.py"],
+      "files": ["ctf_solutions/files/login-bypass/app.py"],
       "url": "http://challenge.ctf.example.com:8080",
       "solved": false
     }
@@ -123,8 +123,8 @@ wget -P .ctf/files/{problem_name}/ {file_url}
 ```
 /ctf-scraper https://ctf.example.com --user admin --pass password
 
-→ .ctf/problems.json が生成される
-→ 添付ファイルは .ctf/files/ に保存
+→ ctf_solutions/problems.json が生成される
+→ 添付ファイルは ctf_solutions/files/ に保存
 ```
 
 ## エラーハンドリング
