@@ -11,7 +11,8 @@
       "ctf-forensics": "opus",
       "ctf-pwn": "opus",
       "ctf-osint": "opus",
-      "ctf-scraper": "opus"
+      "ctf-scraper": "opus",
+      "ctf-writeup-generator": "opus"
     },
 
     "tasks": {

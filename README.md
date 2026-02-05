@@ -375,6 +375,45 @@ cat .ctf/progress.json
 | ctf-pwn | バイナリ解析 | BOF, ROP, Format String |
 | ctf-osint | 公開情報調査 | 画像調査, Google Dorking |
 | ctf-scraper | プラットフォーム操作 | CTFd, rCTF |
+| ctf-writeup-generator | Writeup自動生成 | 全カテゴリ |
+
+---
+
+## Writeup自動生成
+
+問題を解決すると、Writeupが自動的に生成されます。
+
+### 生成タイミング
+
+各専門エージェント（ctf-web, ctf-crypto, ctf-forensics, ctf-pwn, ctf-osint）がフラグを取得した後、`ctf-writeup-generator` を呼び出してWriteupを生成します。
+
+### 保存先
+
+```
+writeups/
+└── [contest-name]/
+    ├── problem1.md
+    ├── problem2.md
+    └── ...
+```
+
+### Writeup構成
+
+| セクション | 内容 |
+|-----------|------|
+| タイトル | 問題名 — Writeup |
+| コラム | 問題に関連する豆知識 |
+| 問題の概要 | 2〜3行の要約 |
+| キーワード・前提知識 | 用語解説（初心者向け） |
+| 解法ステップ | [Step N] 形式、コマンド付き |
+| Flag | フラグ＋和訳・意図 |
+| 防衛者の視点 | 3つ以上の対策 |
+| 学び・ポイント | 学んだことのまとめ |
+| 難易度評価 | Easy/Medium/Hard |
+
+### サンプル
+
+`writeups/ctf-training-set/base64-decode.md` を参照してください。
 
 ---
 
@@ -519,6 +558,7 @@ ctf-claude-code/
 |-- scripts/             # 自動化スクリプト
 |-- templates/           # ソルバーテンプレート
 |-- mcp-configs/         # MCP設定（Playwright等）
+|-- writeups/            # 自動生成されたWriteup
 |-- .ctf/                # 進捗管理
 ```
 
