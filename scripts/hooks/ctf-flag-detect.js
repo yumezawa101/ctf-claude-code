@@ -70,6 +70,10 @@ const PATTERN_MATCHERS = [
   { regex: /feroxbuster/i, trigger: 'ディレクトリ列挙', action: 'feroxbuster で高速スキャン' },
 ];
 
+// 設定
+const MAX_COMMANDS = 20;  // コマンド履歴上限（100 → 20に削減）
+const OUTPUT_TRUNCATE_LENGTH = 200;  // 出力の最大文字数
+
 // stdinから入力を読み取る
 let input = '';
 process.stdin.on('data', chunk => {
@@ -82,9 +86,6 @@ process.stdin.on('end', () => {
     const output = data.tool_output?.stdout || data.tool_output?.output || '';
     const command = data.tool_input?.command || '';
 
-    // コマンドを記録（学習用）
-    recordCommand(command, output);
-
     // フラグパターンを検索
     const foundFlags = new Set();
 
@@ -95,8 +96,13 @@ process.stdin.on('end', () => {
       }
     }
 
+    const hasFlag = foundFlags.size > 0;
+
+    // コマンドを記録（サマリーのみ、フラグ検出情報付き）
+    recordCommand(command, output, hasFlag);
+
     // フラグが見つかった場合
-    if (foundFlags.size > 0) {
+    if (hasFlag) {
       const flags = Array.from(foundFlags);
       console.error('\n' + '='.repeat(50));
       console.error('🚩 [CTF Hook] フラグを検出しました！');
@@ -115,7 +121,7 @@ process.stdin.on('end', () => {
       updateFlagsJson(flags, problem, command);
       saveFlagTxt(flags, problem);
 
-      // 🧠 即時学習: instincts.json と patterns/*.md を更新
+      // 🧠 即時学習: instincts.json のみ更新（patterns/*.md への追記は廃止）
       const learnedPatterns = learnImmediately(problem, command);
       if (learnedPatterns > 0) {
         console.error(`\n🧠 学習完了: ${learnedPatterns}個のパターンを記録`);
@@ -125,20 +131,23 @@ process.stdin.on('end', () => {
       syncToRulesFile();
 
       console.error('='.repeat(50) + '\n');
-    }
 
-    // 入力をそのまま出力（パススルー）
-    console.log(input);
+      // フラグ検出時のみサマリーを出力（パススルーせず）
+      console.log(JSON.stringify({ flags: flags }));
+    }
+    // フラグ未検出時はパススルーしない（コンテキスト節約のため）
   } catch (e) {
-    // JSONパースエラー時はそのまま出力
-    console.log(input);
+    // JSONパースエラー時は何も出力しない
   }
 });
 
 /**
- * コマンドを記録（学習用）
+ * コマンドを記録（学習用）- 出力はサマリー化してコンテキスト節約
+ * @param {string} command - 実行されたコマンド
+ * @param {string} output - コマンド出力
+ * @param {boolean} foundFlag - フラグが検出されたか
  */
-function recordCommand(command, output) {
+function recordCommand(command, output, foundFlag = false) {
   if (!command) return;
 
   // ctf_workspaceディレクトリがなければ作成
@@ -156,16 +165,30 @@ function recordCommand(command, output) {
     }
   }
 
-  // 最新100コマンドのみ保持
+  // 出力はサマリー化（フラグ検出時は検出フラグを記録、それ以外は切り詰め）
+  let outputSummary;
+  if (foundFlag) {
+    // フラグパターンを抽出
+    const flagMatch = output.match(/(?:FLAG|flag|ctf|CTF|SECCON|picoCTF|HTB|DUCTF|CSAW|hxp|dice)\{[^}]+\}/);
+    outputSummary = `✓ Flag: ${flagMatch?.[0] || 'detected'}`;
+  } else {
+    // 出力を切り詰め
+    outputSummary = output.length > OUTPUT_TRUNCATE_LENGTH
+      ? output.slice(0, OUTPUT_TRUNCATE_LENGTH) + '...[truncated]'
+      : output;
+  }
+
+  // コマンドエントリを追加
   commandLog.commands.push({
-    command: command,
+    command: command.length > 200 ? command.slice(0, 200) + '...' : command,
     timestamp: new Date().toISOString(),
-    output_length: output.length,
-    has_flag: FLAG_PATTERNS.some(p => p.test(output))
+    output: outputSummary,  // 出力全文ではなくサマリーのみ
+    has_flag: foundFlag
   });
 
-  if (commandLog.commands.length > 100) {
-    commandLog.commands = commandLog.commands.slice(-100);
+  // 最新MAX_COMMANDSコマンドのみ保持（100 → 20に削減）
+  if (commandLog.commands.length > MAX_COMMANDS) {
+    commandLog.commands = commandLog.commands.slice(-MAX_COMMANDS);
   }
 
   fs.writeFileSync(COMMAND_LOG_FILE, JSON.stringify(commandLog, null, 2));
@@ -424,45 +447,15 @@ function updateInstinct(instincts, newPattern) {
 }
 
 /**
- * patterns/[category].mdに解法を追記
- * @param {string} patternsDir - patternsディレクトリのパス
+ * patterns/[category].mdに解法を追記 - 廃止
+ * コンテキスト節約のため、patterns/*.md への自動追記を無効化
+ * instincts.json のみで学習データを管理する
+ * @param {string} patternsDir - patternsディレクトリのパス（未使用）
  */
 function appendToPatternFile(patternsDir, category, problem, command) {
-  const patternFile = path.join(patternsDir, `${category}.md`);
-
-  try {
-    if (!fs.existsSync(patternsDir)) {
-      fs.mkdirSync(patternsDir, { recursive: true });
-    }
-
-    const problemName = problem?.name || 'Unknown';
-    const flag = problem?.flag || '';
-    const timestamp = new Date().toISOString().split('T')[0];
-
-    // 追記内容を作成
-    const entry = `
-### ${problemName} (${timestamp})
-- **Flag**: \`${flag.substring(0, 20)}...\`
-- **成功コマンド**: \`${command?.substring(0, 100) || 'N/A'}\`
-- **学習ポイント**: このパターンが有効だった
-
-`;
-
-    // ファイルが存在しない場合はヘッダーを追加
-    if (!fs.existsSync(patternFile)) {
-      const header = `# ${category.toUpperCase()} パターン集
-
-このファイルは問題を解くたびに自動更新されます。
-
----
-`;
-      fs.writeFileSync(patternFile, header + entry);
-    } else {
-      fs.appendFileSync(patternFile, entry);
-    }
-  } catch (e) {
-    // 追記失敗は無視
-  }
+  // patterns/*.md への自動追記を廃止（コンテキスト節約）
+  // 手動でレビュー・整理したい場合は別途スクリプトで生成
+  return;
 }
 
 /**
