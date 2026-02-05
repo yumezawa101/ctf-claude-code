@@ -92,3 +92,29 @@ msfvenom -p linux/x86/exec CMD=/bin/sh -f python
 > bins                             # bin一覧
 > vis_heap_chunks                  # チャンク可視化
 ```
+
+## フラグ取得後のWriteup生成
+
+フラグを取得したら、以下の情報を整理して `ctf-writeup-generator` を呼び出す：
+
+```json
+{
+  "problem_name": "[問題名]",
+  "category": "pwn",
+  "points": [配点],
+  "description": "[問題文]",
+  "flag": "[取得したフラグ]",
+  "solve_context": {
+    "steps": [
+      "1. [バイナリ解析結果]",
+      "2. [発見した脆弱性]",
+      "3. [エクスプロイト手法]"
+    ],
+    "tools_used": ["pwntools", "gdb", "ROPgadget", "etc"],
+    "key_insight": "[攻撃成功のポイント]",
+    "code_snippets": "[エクスプロイトコード]"
+  }
+}
+```
+
+**重要**: 保護機構、オフセット計算、ペイロード構造を詳細に記録する。

@@ -67,3 +67,29 @@ foremost -i [file] -o output/
 scalpel [file] -o output/
 photorec [disk.img]
 ```
+
+## フラグ取得後のWriteup生成
+
+フラグを取得したら、以下の情報を整理して `ctf-writeup-generator` を呼び出す：
+
+```json
+{
+  "problem_name": "[問題名]",
+  "category": "forensics",
+  "points": [配点],
+  "description": "[問題文]",
+  "flag": "[取得したフラグ]",
+  "solve_context": {
+    "steps": [
+      "1. [ファイル形式の特定]",
+      "2. [使用した解析手法]",
+      "3. [フラグの発見場所]"
+    ],
+    "tools_used": ["strings", "exiftool", "binwalk", "etc"],
+    "key_insight": "[データ隠蔽の手法]",
+    "code_snippets": "[使用したコマンド/スクリプト]"
+  }
+}
+```
+
+**重要**: ファイル形式の特徴と隠蔽手法を詳細に記録する。
