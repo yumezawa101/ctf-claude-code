@@ -1,0 +1,42 @@
+{
+  "contest": "HackFes 2025 v2",
+  "updated_at": "2026-02-05T12:00:00Z",
+  "flags": [
+    {
+      "problem_id": 10,
+      "problem_name": "Lv.40 022",
+      "category": "forensic",
+      "points": 40,
+      "flag": "flag{dokidoki_shark_pikapika_shark}",
+      "solved_at": "2026-02-05T11:17:00Z",
+      "method": "pcapファイルからstringsで抽出"
+    },
+    {
+      "problem_id": 22,
+      "problem_name": "Lv.40 035",
+      "category": "forensic",
+      "points": 40,
+      "flag": "flag{zip_jisyo_kougeki_dekita?}",
+      "solved_at": "2026-02-05T11:17:00Z",
+      "method": "zip辞書攻撃"
+    },
+    {
+      "problem_id": 23,
+      "problem_name": "Lv.60 036",
+      "category": "forensic",
+      "points": 60,
+      "flag": "flag{7z_jisyo_kougeki_demo_katainya}",
+      "solved_at": "2026-02-05T11:17:00Z",
+      "method": "7z辞書攻撃"
+    },
+    {
+      "problem_id": 9,
+      "problem_name": "Lv.150 021",
+      "category": "web",
+      "points": 150,
+      "flag": "flag{time_based_sql_injection_wo_toppasurutoha...}",
+      "solved_at": "2026-02-05T11:18:00Z",
+      "method": "Time-based SQL Injection"
+    }
+  ]
+}

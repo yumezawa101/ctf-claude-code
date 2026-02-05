@@ -10,6 +10,8 @@ const os = require('os');
 const CTF_DIR = path.join(process.cwd(), 'ctf_workspace');
 const PROGRESS_FILE = path.join(CTF_DIR, 'progress.json');
 const COMMAND_LOG_FILE = path.join(CTF_DIR, 'command-log.json');
+const FLAGS_FILE = path.join(CTF_DIR, 'flags.json');
+const SOLUTIONS_DIR = path.join(CTF_DIR, 'solutions');
 
 // 学習データの保存先（2箇所に保存）
 // 1. ~/.claude/skills/ctf-learning/ (個人用・新セッションで自動参照)
@@ -108,6 +110,10 @@ process.stdin.on('end', () => {
 
       // progress.jsonを更新
       const problem = updateProgress(flags, command);
+
+      // 📁 flags.json と FLAG.txt に保存
+      updateFlagsJson(flags, problem, command);
+      saveFlagTxt(flags, problem);
 
       // 🧠 即時学習: instincts.json と patterns/*.md を更新
       const learnedPatterns = learnImmediately(problem, command);
@@ -210,6 +216,104 @@ function updateProgress(flags, command) {
   } catch (e) {
     return null;
   }
+}
+
+/**
+ * 📁 flags.json を更新（フラグ検出時）
+ */
+function updateFlagsJson(flags, problem, command) {
+  try {
+    // flags.json を読み込み
+    let flagsData = { contest: '', updated_at: '', flags: [] };
+    if (fs.existsSync(FLAGS_FILE)) {
+      try {
+        flagsData = JSON.parse(fs.readFileSync(FLAGS_FILE, 'utf8'));
+      } catch (e) {
+        // パースエラーは無視
+      }
+    }
+
+    // progress.json からコンテスト名を取得
+    if (fs.existsSync(PROGRESS_FILE)) {
+      try {
+        const progress = JSON.parse(fs.readFileSync(PROGRESS_FILE, 'utf8'));
+        flagsData.contest = progress.contest || flagsData.contest;
+      } catch (e) {}
+    }
+
+    flagsData.updated_at = new Date().toISOString();
+
+    // 各フラグを追加（重複チェック）
+    for (const flag of flags) {
+      const existing = flagsData.flags.find(f => f.flag === flag);
+      if (!existing) {
+        flagsData.flags.push({
+          problem_id: problem?.id || null,
+          problem_name: problem?.name || 'Unknown',
+          category: problem?.category || detectCategoryFromCommand(command) || 'misc',
+          points: problem?.points || 0,
+          flag: flag,
+          solved_at: new Date().toISOString(),
+          method: extractMethod(command)
+        });
+        console.error(`📁 flags.json に保存: ${flag.substring(0, 30)}...`);
+      }
+    }
+
+    // ctf_workspaceディレクトリがなければ作成
+    if (!fs.existsSync(CTF_DIR)) {
+      fs.mkdirSync(CTF_DIR, { recursive: true });
+    }
+
+    fs.writeFileSync(FLAGS_FILE, JSON.stringify(flagsData, null, 2));
+  } catch (e) {
+    console.error(`⚠️ flags.json 保存エラー: ${e.message}`);
+  }
+}
+
+/**
+ * 📄 FLAG.txt を問題ディレクトリに保存
+ */
+function saveFlagTxt(flags, problem) {
+  if (!problem?.category || !problem?.name) return;
+
+  try {
+    // 問題名をディレクトリ名に変換（例: "Lv.40 022" -> "lv40_022"）
+    const dirName = problem.name.toLowerCase().replace(/\./g, '').replace(/\s+/g, '_');
+    const category = problem.category.toLowerCase();
+    const problemDir = path.join(SOLUTIONS_DIR, category, dirName);
+
+    // ディレクトリが存在しなければ作成
+    if (!fs.existsSync(problemDir)) {
+      fs.mkdirSync(problemDir, { recursive: true });
+    }
+
+    const flagFile = path.join(problemDir, 'FLAG.txt');
+    fs.writeFileSync(flagFile, flags[0] + '\n');
+    console.error(`📄 FLAG.txt 保存: ${flagFile}`);
+  } catch (e) {
+    console.error(`⚠️ FLAG.txt 保存エラー: ${e.message}`);
+  }
+}
+
+/**
+ * コマンドから解法を抽出
+ */
+function extractMethod(command) {
+  if (!command) return '手動発見';
+
+  if (/strings.*grep/i.test(command)) return 'stringsでフラグ抽出';
+  if (/base64\s+-d/i.test(command)) return 'Base64デコード';
+  if (/sqlmap/i.test(command)) return 'SQLインジェクション';
+  if (/binwalk/i.test(command)) return 'binwalkでファイル抽出';
+  if (/exiftool/i.test(command)) return 'EXIFメタデータ解析';
+  if (/zsteg|steghide/i.test(command)) return 'ステガノグラフィ解析';
+  if (/john|hashcat/i.test(command)) return 'パスワードクラック';
+  if (/curl/i.test(command)) return 'HTTPリクエスト';
+  if (/tshark|wireshark/i.test(command)) return 'パケット解析';
+  if (/gdb|radare2/i.test(command)) return 'バイナリ解析';
+
+  return command.split(' ')[0]; // コマンド名を返す
 }
 
 /**
